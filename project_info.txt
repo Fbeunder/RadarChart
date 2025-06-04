@@ -33,14 +33,17 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Integratie met data_processor module
    - Tijdelijke bestand opslag voor Excel verwerking
 
-2. **data_processor.py** - Dataverwerking module ✅ VOLTOOID
-   - Excel inlezen met pandas/openpyxl (.xlsx en .xls ondersteuning)
-   - Data structuur mapping en validatie
-   - Score berekeningen per competentie en feedback type
+2. **data_processor.py** - Dataverwerking module ✅ VOLTOOID v2.0
+   - Excel/CSV inlezen met pandas/openpyxl (.xlsx, .xls en .csv ondersteuning)
+   - Ondersteuning voor wide format data (competenties als kolommen)
+   - Automatische conversie van wide naar long format
+   - Tekstuele score mapping (Zeer vaak=5, Vaak=4, Soms=3, Zelden=2, Nooit=1)
+   - "Weet ik niet" antwoorden worden correct genegeerd
+   - KLANTGERICHTHEID sub-competenties worden automatisch gecombineerd
+   - Automatische detectie van competentie categorieën uit kolomnamen
+   - Flexibele kolom mapping voor verschillende Excel structuren
    - Team gemiddelden berekening
-   - Ondersteuning voor self, peer, manager feedback types
    - Uitgebreide error handling en validatie
-   - Sample data generatie voor testing
 
 #### Frontend (HTML/CSS/JavaScript)
 1. **templates/index.html** - Hoofdpagina ✅ VOLTOOID
@@ -61,13 +64,28 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
 
 4. **static/css/style.css** - Styling
 
-### Competentiegebieden (Flexibel systeem)
-Het systeem ondersteunt nu flexibele competentiegebieden die automatisch worden gedetecteerd uit de Excel data. Standaard categorieën:
-1. **Leiderschap**: Visie, Besluitvorming, Delegeren, Inspireren, Coaching
-2. **Communicatie**: Luisteren, Presenteren, Feedback geven, Overtuigen, Duidelijkheid
-3. **Samenwerking**: Teamwork, Conflicthantering, Netwerken, Empathie, Samenwerken
-4. **Resultaatgerichtheid**: Planning, Uitvoering, Kwaliteit, Efficiency, Doelgerichtheid
-5. **Persoonlijke Ontwikkeling**: Leren, Aanpassingsvermogen, Innovatie, Zelfreflectie, Groei
+### Ondersteunde Data Formaten
+Het systeem ondersteunt nu twee Excel/CSV structuren:
+
+1. **Wide Format (Nieuw)**: Competenties als kolommen
+   - Kolommen: Timestamp, Wie ben jij?, Voor welke collega..?, [Competentie kolommen]
+   - Scores: Tekstueel (Zeer vaak, Vaak, Soms, Zelden, Nooit, Weet ik niet)
+   - Automatische categorie detectie uit kolomnamen
+
+2. **Long Format (Origineel)**: Competenties als rijen
+   - Kolommen: Persoon, Beoordelaar, Competentie, Score, Type
+   - Scores: Numeriek (1-5)
+
+### Competentiegebieden (Automatisch Gedetecteerd)
+Competenties worden automatisch gedetecteerd uit de Excel kolomnamen. Typische categorieën:
+- **PROBLEEMANALYSE**: Begrijpen, oplossen, analyseren
+- **KWALITEITSZORG**: Kwaliteit, vindingrijkheid, validatie
+- **KLANTGERICHTHEID**: Communicatie en behoefte ophalen (worden gecombineerd)
+- **PROJECTMANAGEMENT**: Doelen, structuur, tempo
+- **TEAMSPELER**: Samenwerking, openheid, motivatie
+- **COLLEGIALE ONTWIKKELING**: Beschikbaarheid, kennisdeling, begeleiding
+- **LEIDERSCHAP EN INTEGRITEIT**: Respect, werkomgeving, doorzettingsvermogen
+- **INNOVATIE EN COMMERCIE**: Kansen, oplossingen, vernieuwing
 
 ### Module Status
 - requirements.txt: ✅ Voltooid (Flask 3.0.0, pandas 2.1.4, numpy 1.24.3, openpyxl 3.1.2, xlrd 2.0.1, python-dotenv 1.0.0, Werkzeug 3.0.1)
@@ -76,7 +94,8 @@ Het systeem ondersteunt nu flexibele competentiegebieden die automatisch worden 
 - .gitignore: ✅ Voltooid (Python en project-specifieke exclusions)
 - app.py: ✅ Voltooid (Flask backend core met alle routes en data_processor integratie)
 - templates/index.html: ✅ Voltooid (Basis homepage met API documentatie)
-- data_processor.py: ✅ Voltooid (Complete Excel verwerking en score berekeningen)
+- data_processor.py: ✅ Voltooid v2.0 (Wide format support, tekst score mapping, KLANTGERICHTHEID combinatie)
+- Test bestanden: ✅ Toegevoegd (test_input_data.py, verify_data_processing.py, test_sample_data.csv)
 - static/js/script.js: Nog te maken
 - static/js/radarChart.js: Nog te maken
 - static/css/style.css: Nog te maken
