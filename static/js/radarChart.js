@@ -12,8 +12,8 @@ function RadarChart(id, data, options) {
         margin: {top: 20, right: 20, bottom: 20, left: 20}, // Marges
         levels: 5,                 // Aantal concentrische cirkels
         maxValue: 5,               // Maximum waarde op de schaal
-        labelFactor: 1.25,         // Hoe ver de labels van de center staan
-        wrapWidth: 60,             // Aantal pixels voordat label wrap
+        labelFactor: 1.35,         // Hoe ver de labels van de center staan (verhoogd voor betere zichtbaarheid)
+        wrapWidth: 80,             // Aantal pixels voordat label wrap (verhoogd voor lange namen)
         opacityArea: 0.35,         // Opacity van de area
         dotRadius: 4,              // Grootte van de dots
         opacityCircles: 0.1,       // Opacity van de concentrische cirkels
@@ -102,14 +102,32 @@ function RadarChart(id, data, options) {
         .style("stroke", "white")
         .style("stroke-width", "2px");
 
-    // Teken de axis labels
+    // Teken de axis labels met verbeterde positionering
     axis.append("text")
         .attr("class", "legend")
-        .style("font-size", "11px")
+        .style("font-size", "12px") // Iets groter voor betere leesbaarheid
+        .style("font-weight", "500") // Semi-bold voor betere zichtbaarheid
         .attr("text-anchor", "middle")
         .attr("dy", "0.35em")
-        .attr("x", (d, i) => radius * cfg.labelFactor * Math.cos(angleSlice * i - Math.PI/2))
-        .attr("y", (d, i) => radius * cfg.labelFactor * Math.sin(angleSlice * i - Math.PI/2))
+        .attr("x", (d, i) => {
+            const angle = angleSlice * i - Math.PI/2;
+            const x = radius * cfg.labelFactor * Math.cos(angle);
+            // Extra ruimte voor labels aan de zijkanten
+            if (Math.abs(Math.cos(angle)) > 0.7) {
+                return x * 1.1; // 10% extra ruimte voor zijkant labels
+            }
+            return x;
+        })
+        .attr("y", (d, i) => {
+            const angle = angleSlice * i - Math.PI/2;
+            const y = radius * cfg.labelFactor * Math.sin(angle);
+            // Extra ruimte voor labels boven en onder
+            if (Math.abs(Math.sin(angle)) > 0.7) {
+                return y * 1.1; // 10% extra ruimte voor boven/onder labels
+            }
+            return y;
+        })
+        .style("fill", "#2c3e50") // Donkerder kleur voor betere contrast
         .text(d => d)
         .call(wrap, cfg.wrapWidth);
 
@@ -218,7 +236,7 @@ function RadarChart(id, data, options) {
     /////////////////////////////////////////////////////////
     /////////////////// Helper Function ////////////////////
     /////////////////////////////////////////////////////////
-    // Wraps SVG text
+    // Verbeterde wrap functie voor lange competentie namen
     function wrap(text, width) {
         text.each(function() {
             const text = d3.select(this);
@@ -226,7 +244,7 @@ function RadarChart(id, data, options) {
             let word;
             let line = [];
             let lineNumber = 0;
-            const lineHeight = 1.4; // ems
+            const lineHeight = 1.2; // Iets compacter voor betere ruimtebenutting
             const y = text.attr("y");
             const x = text.attr("x");
             const dy = parseFloat(text.attr("dy"));
@@ -239,8 +257,21 @@ function RadarChart(id, data, options) {
                     line.pop();
                     tspan.text(line.join(" "));
                     line = [word];
-                    tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+                    tspan = text.append("tspan")
+                        .attr("x", x)
+                        .attr("y", y)
+                        .attr("dy", ++lineNumber * lineHeight + dy + "em")
+                        .text(word);
                 }
+            }
+            
+            // Centreer multi-line labels verticaal
+            if (lineNumber > 0) {
+                const totalHeight = lineNumber * lineHeight;
+                text.selectAll("tspan")
+                    .attr("dy", function(d, i) {
+                        return (i === 0 ? dy - totalHeight/2 : lineHeight) + "em";
+                    });
             }
         });
     }
@@ -306,11 +337,13 @@ function initializeRadarChart(containerId, scoresData, personName, options = {})
         personName
     );
 
-    // Default opties
+    // Default opties met verbeterde marges voor labels
     const defaultOptions = {
         w: Math.min(window.innerWidth * 0.8, 500),
         h: Math.min(window.innerHeight * 0.6, 500),
-        margin: {top: 50, right: 50, bottom: 50, left: 50}
+        margin: {top: 60, right: 100, bottom: 60, left: 100}, // Meer ruimte voor labels
+        labelFactor: 1.35, // Verder van center voor betere zichtbaarheid
+        wrapWidth: 80 // Meer ruimte voor lange labels
     };
 
     const finalOptions = { ...defaultOptions, ...options };
