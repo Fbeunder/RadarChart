@@ -257,6 +257,38 @@ def get_person_details(person_name):
             'success': False
         }), 500
 
+@app.route('/get_all_persons_data')
+def get_all_persons_data():
+    """Retourneer data voor alle personen voor batch export"""
+    try:
+        if not processed_data["persons"]:
+            return jsonify({
+                'error': 'Geen data beschikbaar',
+                'success': False
+            }), 404
+        
+        all_persons_data = []
+        for person_name in processed_data["available_persons"]:
+            person_data = processed_data["persons"][person_name]
+            all_persons_data.append({
+                'person_name': person_name,
+                'scores': {
+                    'individual_scores': person_data["scores"],
+                    'team_averages': processed_data["team_averages"]
+                }
+            })
+        
+        return jsonify({
+            'success': True,
+            'persons_data': all_persons_data,
+            'total_persons': len(all_persons_data)
+        })
+    except Exception as e:
+        return jsonify({
+            'error': f'Fout bij ophalen data: {str(e)}',
+            'success': False
+        }), 500
+
 @app.route('/status')
 def status():
     """Geef status informatie van de applicatie"""
@@ -368,6 +400,7 @@ if __name__ == '__main__':
     print("📁 Upload endpoint: POST /upload")
     print("📈 Scores endpoint: GET /get_scores/<person_name>")
     print("🔍 Details endpoint: GET /get_person_details/<person_name>")
+    print("📦 Batch export endpoint: GET /get_all_persons_data")
     print("✅ Validatie endpoint: POST /validate")
     print("ℹ️  Status endpoint: GET /status")
     print("📋 Ondersteunde formaten: .xlsx, .xls")
