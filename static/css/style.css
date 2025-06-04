@@ -208,6 +208,151 @@ h1 {
     box-shadow: none;
 }
 
+/* Batch Export Sectie */
+.batch-export-container {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    text-align: center;
+    border-left: 5px solid #9b59b6;
+}
+
+.batch-export-container h3 {
+    color: #2c3e50;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.batch-export-container p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.create-all-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.create-all-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.create-all-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-icon {
+    font-size: 20px;
+}
+
+#exportProgress {
+    margin-top: 20px;
+}
+
+.progress-text {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+/* Export Dialog */
+.export-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.export-dialog {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.export-dialog h3 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+}
+
+.export-path-input {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    margin: 10px 0;
+    box-sizing: border-box;
+}
+
+.export-path-input:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.export-hint {
+    font-size: 12px;
+    color: #666;
+    margin: 10px 0 20px 0;
+}
+
+.dialog-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-secondary {
+    background: #e0e0e0;
+    color: #666;
+}
+
+.btn-secondary:hover {
+    background: #d0d0d0;
+}
+
 /* Resultaten sectie */
 .results-section {
     background-color: #f8f9fa;
@@ -319,6 +464,18 @@ h1 {
     .upload-icon {
         font-size: 2.5em;
     }
+    
+    .export-dialog {
+        padding: 20px;
+    }
+    
+    .dialog-buttons {
+        flex-direction: column;
+    }
+    
+    .btn-primary, .btn-secondary {
+        width: 100%;
+    }
 }
 
 @media (max-width: 480px) {
@@ -341,6 +498,11 @@ h1 {
     .upload-hint {
         font-size: 0.8em !important;
     }
+    
+    .create-all-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
 }
 
 /* Animaties */
@@ -356,7 +518,8 @@ h1 {
 }
 
 .person-selection,
-.results-section {
+.results-section,
+#batchExportSection {
     animation: fadeIn 0.5s ease;
 }
 
