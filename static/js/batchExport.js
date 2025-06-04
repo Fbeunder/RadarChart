@@ -5,6 +5,7 @@ class BatchExporter {
         this.exportQueue = [];
         this.completedExports = [];
         this.failedExports = [];
+        this.exportedFiles = []; // Voor batch download
         this.initializeEventListeners();
     }
 
@@ -33,6 +34,7 @@ class BatchExporter {
         this.isExporting = true;
         this.completedExports = [];
         this.failedExports = [];
+        this.exportedFiles = [];
         
         const batchBtn = document.getElementById('batchExportBtn');
         batchBtn.disabled = true;
@@ -63,8 +65,13 @@ class BatchExporter {
                 const personData = this.exportQueue[i];
                 
                 try {
-                    await this.exportSinglePerson(personData, exportDate);
+                    const fileBlob = await this.exportSinglePerson(personData, exportDate);
                     this.completedExports.push(personData.person_name);
+                    this.exportedFiles.push({
+                        name: personData.person_name,
+                        blob: fileBlob,
+                        filename: this.generateFileName(personData.person_name, exportDate)
+                    });
                 } catch (error) {
                     console.error(`Export failed for ${personData.person_name}:`, error);
                     this.failedExports.push({
@@ -77,6 +84,12 @@ class BatchExporter {
                 
                 // Kleine delay tussen exports
                 await this.delay(100);
+            }
+            
+            // Start batch download van alle bestanden
+            if (this.exportedFiles.length > 0) {
+                this.showBatchStatus('processing', '📦 Voorbereiden van batch download...');
+                await this.downloadAllFiles();
             }
             
             this.showCompletionStatus();
@@ -122,33 +135,138 @@ class BatchExporter {
             // Wacht tot chart volledig gerenderd is
             await this.delay(500);
             
-            // Gebruik ChartExporter om PNG te maken
+            // Gebruik ChartExporter om PNG te maken met dezelfde opmaak als enkele export
             const svgElement = tempContainer.querySelector('svg');
             if (!svgElement) throw new Error('Chart rendering failed');
             
-            // Maak complete export SVG
+            // Maak complete export SVG met dezelfde opmaak als ChartExporter
             const exporter = new ChartExporter();
             exporter.setCurrentPersonName(personData.person_name);
             const completeSvg = await exporter.createCompleteExportSvg(svgElement);
             
-            // Genereer bestandsnaam
-            const cleanName = personData.person_name
-                .toLowerCase()
-                .replace(/[^a-z0-9]/g, '_')
-                .replace(/_+/g, '_')
-                .replace(/^_|_$/g, '');
-            const filename = `${exportDate}_${cleanName}.png`;
-            
-            // Converteer naar PNG en download
-            await exporter.convertSVGtoPNG(completeSvg, filename);
+            // Converteer naar PNG blob (niet downloaden)
+            const pngBlob = await this.convertSVGtoPNGBlob(completeSvg);
             
             // Cleanup
             if (chart && chart.destroy) chart.destroy();
+            
+            return pngBlob;
             
         } finally {
             // Verwijder temp container
             document.body.removeChild(tempContainer);
         }
+    }
+
+    async convertSVGtoPNGBlob(svgElement) {
+        return new Promise((resolve, reject) => {
+            try {
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Get SVG dimensions
+                const svgWidth = parseInt(svgElement.getAttribute('width')) || 800;
+                const svgHeight = parseInt(svgElement.getAttribute('height')) || 600;
+                
+                // Set canvas size with high DPI for better quality
+                const scale = 2; // 2x resolution for crisp export
+                canvas.width = svgWidth * scale;
+                canvas.height = svgHeight * scale;
+                canvas.style.width = svgWidth + 'px';
+                canvas.style.height = svgHeight + 'px';
+                
+                // Scale context for high DPI
+                ctx.scale(scale, scale);
+                
+                // Fill white background
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, svgWidth, svgHeight);
+                
+                // Convert SVG to data URL
+                const svgData = new XMLSerializer().serializeToString(svgElement);
+                const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                const svgUrl = URL.createObjectURL(svgBlob);
+                
+                // Create image and draw to canvas
+                const img = new Image();
+                
+                img.onload = () => {
+                    try {
+                        // Draw image
+                        ctx.drawImage(img, 0, 0, svgWidth, svgHeight);
+                        
+                        // Convert canvas to blob
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                resolve(blob);
+                            } else {
+                                reject(new Error('Kon PNG niet genereren'));
+                            }
+                        }, 'image/png', 0.95);
+                        
+                        // Cleanup
+                        URL.revokeObjectURL(svgUrl);
+                        
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                
+                img.onerror = () => {
+                    URL.revokeObjectURL(svgUrl);
+                    reject(new Error('Kon SVG niet laden voor PNG conversie'));
+                };
+                
+                // Set crossOrigin before src to avoid CORS issues
+                img.crossOrigin = 'anonymous';
+                img.src = svgUrl;
+                
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    async downloadAllFiles() {
+        // Download alle bestanden in één batch met korte delays
+        for (let i = 0; i < this.exportedFiles.length; i++) {
+            const file = this.exportedFiles[i];
+            this.downloadBlob(file.blob, file.filename);
+            
+            // Korte delay tussen downloads om browser niet te overbelasten
+            if (i < this.exportedFiles.length - 1) {
+                await this.delay(200);
+            }
+        }
+    }
+
+    downloadBlob(blob, filename) {
+        // Create download link
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Cleanup
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    }
+
+    generateFileName(personName, exportDate) {
+        // Gebruik dezelfde naamgeving als ChartExporter voor consistentie
+        const cleanName = personName
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '_')
+            .replace(/_+/g, '_')
+            .replace(/^_|_$/g, '');
+        
+        return `${exportDate}_${cleanName}.png`;
     }
 
     updateProgressBar(current, total) {
@@ -192,7 +310,7 @@ class BatchExporter {
         
         if (failed === 0) {
             this.showBatchStatus('success', 
-                `✅ Alle ${succeeded} radar charts succesvol geëxporteerd!`);
+                `✅ Alle ${succeeded} radar charts succesvol geëxporteerd en gedownload!`);
         } else {
             let message = `⚠️ Export voltooid: ${succeeded} geslaagd, ${failed} mislukt.`;
             if (failed > 0) {
