@@ -31,7 +31,7 @@ Een lokaal draaiende webapplicatie waarmee gebruikers een Excel-bestand met feed
 * **Ontwikkelomgeving:** Standaard Python virtuele omgeving.
 
 **4. Applicatie Architectuur** 🏗️
-
+* **Backend:** Als je packes of software nodig hebt, denk altijd na of je dan de meeste recente stabiele versies hebt geselecteerd.
 * **Backend (Python/Flask - `app.py`, `data_processor.py`)**
     * **`data_processor.py` (Module voor dataverwerking):**
         * **Functie voor Excel inlezen:** Leest het geüploade Excel-bestand in een Pandas DataFrame.
