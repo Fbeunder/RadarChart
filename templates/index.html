@@ -22,6 +22,7 @@
                 <li><strong>Excel Upload:</strong> Upload feedback bestanden direct vanuit Excel</li>
                 <li><strong>Radar Visualisatie:</strong> Interactieve radar charts voor competentie-analyse</li>
                 <li><strong>Team Vergelijking:</strong> Vergelijk individuele scores met teamgemiddelden</li>
+                <li><strong>Export Functionaliteit:</strong> Download charts als PNG of SVG afbeeldingen</li>
                 <li><strong>Privacy First:</strong> Alle data blijft lokaal op uw computer</li>
             </ul>
         </div>
@@ -57,6 +58,21 @@
         <div class="results-section" id="resultsSection" style="display: none;">
             <h3>📊 Feedback Analyse</h3>
             <div id="radarChartContainer"></div>
+            
+            <!-- Export Controls -->
+            <div class="export-controls" id="exportControls" style="display: none;">
+                <h4>📥 Download Chart</h4>
+                <div class="export-options">
+                    <button id="exportChartBtn" class="export-btn">
+                        📥 Download Chart als Afbeelding
+                    </button>
+                    <select id="exportFormat" class="export-format">
+                        <option value="png">PNG (Aanbevolen)</option>
+                        <option value="svg">SVG (Vector)</option>
+                    </select>
+                </div>
+                <div class="export-status" id="exportStatus" style="display: none;"></div>
+            </div>
         </div>
 
         <!-- API Info (voor ontwikkelaars) -->
@@ -78,6 +94,7 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/radarChart.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/exportChart.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
