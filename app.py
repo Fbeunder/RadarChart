@@ -196,12 +196,14 @@ def get_scores(person_name):
         # Haal persoon data op
         person_data = processed_data["persons"][person_name]
         
-        # Bereid data voor radar chart
+        # Bereid data voor radar chart - FIX: Gebruik juiste data structuur
         radar_data = {
             'person_name': person_name,
-            'person_scores': person_data["scores"],
+            'scores': {
+                'individual_scores': person_data["scores"],  # Frontend verwacht individual_scores
+                'team_averages': processed_data["team_averages"]
+            },
             'person_details': person_data["details"],
-            'team_averages': processed_data["team_averages"],
             'competencies': list(person_data["scores"].keys()),
             'upload_timestamp': processed_data["upload_timestamp"],
             'total_responses': person_data["total_responses"],
