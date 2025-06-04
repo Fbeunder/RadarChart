@@ -24,7 +24,7 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
 ### Architectuur/Modulestructuur
 
 #### Backend (Python/Flask)
-1. **app.py** - Hoofdapplicatie ✅ VOLTOOID
+1. **app.py** - Hoofdapplicatie ✅ VOLTOOID (v2.1 - Bug fix)
    - Flask server configuratie (poort 5010)
    - Routes: /, /upload, /get_scores/<person_name>, /get_person_details/<person_name>, /validate, /status
    - In-memory data opslag voor verwerkte resultaten
@@ -34,6 +34,7 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Tijdelijke bestand opslag voor Excel verwerking
    - File size validatie (16MB max)
    - Comprehensive error responses
+   - **BUG FIX**: Correcte data structuur voor radar chart (scores.individual_scores)
 
 2. **data_processor.py** - Dataverwerking module ✅ VOLTOOID v2.0
    - Excel/CSV inlezen met pandas/openpyxl (.xlsx, .xls ondersteuning)
@@ -131,7 +132,7 @@ Competenties worden automatisch gedetecteerd uit de Excel kolomnamen. Typische c
 - README.md: ✅ Voltooid (Uitgebreide documentatie met installatie en gebruik instructies)
 - Mappenstructuur: ✅ Voltooid (templates/, static/css/, static/js/ aangemaakt)
 - .gitignore: ✅ Voltooid (Python en project-specifieke exclusions)
-- app.py: ✅ Voltooid (Flask backend core met alle routes en data_processor integratie)
+- app.py: ✅ Voltooid v2.1 (Flask backend core met alle routes en data_processor integratie + bug fix)
 - templates/index.html: ✅ Voltooid v3.0 (D3.js v7 CDN integratie, radar chart ready)
 - data_processor.py: ✅ Voltooid v2.0 (Wide format support, tekst score mapping, KLANTGERICHTHEID combinatie)
 - Test bestanden: ✅ Toegevoegd (test_input_data.py, verify_data_processing.py, test_sample_data.csv)
@@ -148,6 +149,7 @@ Competenties worden automatisch gedetecteerd uit de Excel kolomnamen. Typische c
 - ✅ Team vergelijking functionaliteit
 - ✅ Responsive design
 - ✅ Error handling en gebruikersfeedback
+- ✅ Bug fix: Data structuur mismatch opgelost
 
 **Volgende Stappen** (nice-to-have):
 - Testing & optimalisatie
