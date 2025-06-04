@@ -1,0 +1,69 @@
+## Project Stappen: Feedback Analyse & Visualisatie Applicatie
+
+### Stap 1: Project Setup & Requirements (must-have)
+**Omschrijving:** Basis projectstructuur opzetten met alle benodigde mappen en requirements
+**Doel:** Een werkende ontwikkelomgeving creëren met alle benodigde dependencies zodat het team direct kan beginnen met de implementatie. Dit zorgt voor een solide fundament waarop de applicatie gebouwd kan worden.
+**Bestanden:**
+- requirements.txt (nieuw) - Flask, pandas, openpyxl dependencies
+- README.md (nieuw) - Setup instructies en projectdocumentatie
+- Mappenstructuur aanmaken: templates/, static/css/, static/js/
+
+### Stap 2: Backend Core - Flask Applicatie (must-have)
+**Omschrijving:** Implementeer de basis Flask applicatie met routes
+**Doel:** Een werkende webserver op poort 5010 die requests kan ontvangen en verwerken. Dit is het hart van de applicatie waar alle communicatie tussen frontend en backend doorheen loopt.
+**Bestanden:**
+- app.py (nieuw) - Flask server met routes: /, /upload, /get_scores/<person_name>
+
+### Stap 3: Data Processing Module (must-have)
+**Omschrijving:** Ontwikkel de module voor Excel verwerking en score berekeningen
+**Doel:** Feedbackdata uit Excel bestanden kunnen inlezen, verwerken en omzetten naar bruikbare scores per competentie. Dit maakt het mogelijk om de ruwe data om te zetten in inzichtelijke informatie voor de gebruiker.
+**Bestanden:**
+- data_processor.py (nieuw) - Excel parsing, score mapping, competentie berekeningen
+
+### Stap 4: Frontend Basis Interface (must-have)
+**Omschrijving:** Maak de HTML interface met upload functionaliteit
+**Doel:** Een gebruiksvriendelijke interface waar HR-professionals eenvoudig Excel bestanden kunnen uploaden en personen kunnen selecteren voor analyse. Dit maakt de applicatie toegankelijk voor niet-technische gebruikers.
+**Bestanden:**
+- templates/index.html (nieuw) - Hoofdpagina met upload en selectie elementen
+- static/css/style.css (nieuw) - Basis styling
+
+### Stap 5: Frontend JavaScript Logica (must-have)
+**Omschrijving:** Implementeer de client-side logica voor file handling en API communicatie
+**Doel:** Soepele interactie tussen gebruiker en backend mogelijk maken, zodat uploads direct worden verwerkt en resultaten real-time worden getoond zonder pagina refreshes.
+**Bestanden:**
+- static/js/script.js (nieuw) - Upload handling, API calls, UI updates
+
+### Stap 6: D3.js Radar Chart Visualisatie (must-have)
+**Omschrijving:** Ontwikkel de interactieve radar chart met D3.js
+**Doel:** Feedbackresultaten visueel presenteren in een radar chart die direct inzicht geeft in sterktes en ontwikkelpunten. De vergelijking met teamgemiddelden helpt bij het identificeren van relatieve prestaties.
+**Bestanden:**
+- static/js/radarChart.js (nieuw) - D3.js implementatie voor dual-dataset radar chart
+- static/js/d3.v7.min.js (toevoegen via CDN of lokaal)
+
+### Stap 7: Error Handling & Validatie (must-have)
+**Omschrijving:** Robuuste error handling toevoegen voor file uploads en data processing
+**Doel:** Een betrouwbare applicatie die gracefully omgaat met fouten zoals verkeerde bestandsformaten of ontbrekende data, zodat gebruikers duidelijke feedback krijgen bij problemen.
+**Bestanden:**
+- app.py (update) - Error handling in routes
+- data_processor.py (update) - Validatie van Excel structuur en data
+
+### Stap 8: Testing & Optimalisatie (nice-to-have)
+**Omschrijving:** Uitgebreide tests met verschillende datasets en performance optimalisatie
+**Doel:** Verzekeren dat de applicatie betrouwbaar werkt met verschillende soorten input en snel blijft bij grote datasets.
+**Bestanden:**
+- test_data/ map met test Excel bestanden
+- Performance optimalisaties in data_processor.py
+
+### Stap 9: Uitgebreide Documentatie (nice-to-have)
+**Omschrijving:** Gedetailleerde gebruikersdocumentatie en code documentatie
+**Doel:** De applicatie toegankelijk maken voor nieuwe gebruikers en ontwikkelaars die het project willen uitbreiden of onderhouden.
+**Bestanden:**
+- README.md (update) - Uitgebreide gebruikershandleiding
+- Code comments en docstrings toevoegen
+
+### Stap 10: Extra Features (nice-to-have)
+**Omschrijving:** Toevoegen van export functionaliteit, meerdere personen vergelijken, historische data
+**Doel:** De applicatie uitbreiden met features die het nog waardevoller maken voor HR-professionals bij het analyseren van feedbacktrends over tijd.
+**Bestanden:**
+- Nieuwe routes en functionaliteiten in app.py en data_processor.py
+- UI updates in frontend bestanden
