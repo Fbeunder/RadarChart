@@ -22,6 +22,7 @@
                 <li><strong>Excel Upload:</strong> Upload feedback bestanden direct vanuit Excel</li>
                 <li><strong>Radar Visualisatie:</strong> Interactieve radar charts voor competentie-analyse</li>
                 <li><strong>Team Vergelijking:</strong> Vergelijk individuele scores met teamgemiddelden</li>
+                <li><strong>Batch Export:</strong> Exporteer alle radar charts in één keer als GIF bestanden</li>
                 <li><strong>Privacy First:</strong> Alle data blijft lokaal op uw computer</li>
             </ul>
         </div>
@@ -53,6 +54,24 @@
             <button id="analyzeButton">Analyseer Feedback</button>
         </div>
 
+        <!-- Batch Export Sectie -->
+        <div id="batchExportSection" style="display: none;">
+            <div class="batch-export-container">
+                <h3>📦 Batch Export</h3>
+                <p>Genereer radar charts voor alle personen tegelijk</p>
+                <button id="createAllButton" class="create-all-btn">
+                    <span class="btn-icon">🎯</span>
+                    Create All
+                </button>
+                <div id="exportProgress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <p class="progress-text">Verwerken: <span id="currentPerson"></span></p>
+                </div>
+            </div>
+        </div>
+
         <!-- Resultaten Sectie -->
         <div class="results-section" id="resultsSection" style="display: none;">
             <h3>📊 Feedback Analyse</h3>
@@ -68,6 +87,7 @@
                 <div class="endpoint">GET / - Deze homepage</div>
                 <div class="endpoint">POST /upload - Upload Excel bestand voor verwerking</div>
                 <div class="endpoint">GET /get_scores/&lt;person_name&gt; - Haal scores op voor specifieke persoon</div>
+                <div class="endpoint">POST /export_gif - Exporteer SVG naar GIF bestand</div>
                 <div class="endpoint">GET /status - Server status en beschikbare data</div>
             </div>
         </div>
