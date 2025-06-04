@@ -1,58 +1,67 @@
 ## Project Stappen: Feedback Analyse & Visualisatie Applicatie
 
-### ✅ Stap 1: Project Setup & Requirements (VOLTOOID)
-**Samenvatting:** Basis projectstructuur opgezet met requirements.txt (Flask 3.0.0, pandas 2.1.4, openpyxl 3.1.2, python-dotenv 1.0.0, Werkzeug 3.0.1), uitgebreide README.md documentatie, mappenstructuur (templates/, static/css/, static/js/) en .gitignore bestand.
+### ✅ Voltooide Stappen Samenvatting
+1. **Project Setup & Requirements**: Basis structuur, requirements.txt, README.md, mappenstructuur
+2. **Backend Core**: Flask app op poort 5010 met alle basis routes en mock data
+3. **Data Processing Module v1**: Originele Excel verwerking voor long format data
+4. **Data Check & Update v2**: Data processor aangepast voor wide format, tekstuele scores, KLANTGERICHTHEID combinatie
 
-### ✅ Stap 2: Backend Core - Flask Applicatie (VOLTOOID)
-**Samenvatting:** Flask backend core geïmplementeerd met app.py (Flask server op poort 5010, routes voor /, /upload, /get_scores/<person_name>, /status, CORS headers, error handling, in-memory data storage, mock data voor testing) en templates/index.html (basis homepage met API documentatie en professionele styling).
-
-### ✅ Stap 3: Data Processing Module (VOLTOOID)
-**Samenvatting:** Complete data processing module geïmplementeerd met data_processor.py (Excel parsing voor .xlsx/.xls, data structuur mapping, score berekeningen per competentie, team gemiddelden, ondersteuning voor self/peer/manager feedback types, uitgebreide validatie en error handling). App.py geüpdatet met integratie van ExcelProcessor, nieuwe endpoints (/validate, /get_person_details), tijdelijke bestand opslag. Requirements.txt uitgebreid met numpy en xlrd.
-
-### Stap 4: Frontend Basis Interface (must-have)
+### Stap 5: Frontend Basis Interface (must-have)
 **Omschrijving:** Maak de HTML interface met upload functionaliteit
 **Doel:** Een gebruiksvriendelijke interface waar HR-professionals eenvoudig Excel bestanden kunnen uploaden en personen kunnen selecteren voor analyse. Dit maakt de applicatie toegankelijk voor niet-technische gebruikers.
 **Bestanden:**
 - templates/index.html (update) - Upload interface en persoon selectie toevoegen
-- static/css/style.css (nieuw) - Basis styling
+- static/css/style.css (nieuw) - Basis styling voor professionele uitstraling
+**Acceptatiecriteria:**
+- Drag & drop upload interface voor Excel/CSV bestanden
+- Live preview van geüploade bestand info
+- Dropdown voor persoon selectie na succesvolle upload
+- Duidelijke feedback bij fouten of succesvolle acties
 
-### Stap 5: Frontend JavaScript Logica (must-have)
+### Stap 6: Frontend JavaScript Logica (must-have)
 **Omschrijving:** Implementeer de client-side logica voor file handling en API communicatie
 **Doel:** Soepele interactie tussen gebruiker en backend mogelijk maken, zodat uploads direct worden verwerkt en resultaten real-time worden getoond zonder pagina refreshes.
 **Bestanden:**
 - static/js/script.js (nieuw) - Upload handling, API calls, UI updates
+**Acceptatiecriteria:**
+- File upload via FormData naar /upload endpoint
+- Progress indicator tijdens upload
+- Automatisch laden van beschikbare personen na upload
+- Error handling met gebruiksvriendelijke meldingen
 
-### Stap 6: D3.js Radar Chart Visualisatie (must-have)
+### Stap 7: D3.js Radar Chart Visualisatie (must-have)
 **Omschrijving:** Ontwikkel de interactieve radar chart met D3.js. Style: https://gist.github.com/nbremer/21746a9668ffdf6d8242
 **Doel:** Feedbackresultaten visueel presenteren in een radar chart die direct inzicht geeft in sterktes en ontwikkelpunten. De vergelijking met teamgemiddelden helpt bij het identificeren van relatieve prestaties.
 **Bestanden:**
 - static/js/radarChart.js (nieuw) - D3.js implementatie voor dual-dataset radar chart
-- static/js/d3.v7.min.js (toevoegen via CDN of lokaal)
-
-### Stap 7: Error Handling & Validatie (must-have)
-**Omschrijving:** Robuuste error handling toevoegen voor file uploads en data processing
-**Doel:** Een betrouwbare applicatie die gracefully omgaat met fouten zoals verkeerde bestandsformaten of ontbrekende data, zodat gebruikers duidelijke feedback krijgen bij problemen.
-**Bestanden:**
-- app.py (update) - Error handling in routes
-- data_processor.py (update) - Validatie van Excel structuur en data
+- Update index.html voor D3.js CDN link
+**Acceptatiecriteria:**
+- Radar chart toont individuele scores en team gemiddelden
+- Interactieve tooltips met exacte scores
+- Legenda voor individueel vs team
+- Responsive design voor verschillende schermgroottes
 
 ### Stap 8: Testing & Optimalisatie (nice-to-have)
 **Omschrijving:** Uitgebreide tests met verschillende datasets en performance optimalisatie
 **Doel:** Verzekeren dat de applicatie betrouwbaar werkt met verschillende soorten input en snel blijft bij grote datasets.
 **Bestanden:**
-- test_data/ map met test Excel bestanden
+- test_data/ map met verschillende test Excel bestanden
 - Performance optimalisaties in data_processor.py
+- Unit tests voor kritieke functies
 
 ### Stap 9: Uitgebreide Documentatie (nice-to-have)
 **Omschrijving:** Gedetailleerde gebruikersdocumentatie en code documentatie
 **Doel:** De applicatie toegankelijk maken voor nieuwe gebruikers en ontwikkelaars die het project willen uitbreiden of onderhouden.
 **Bestanden:**
-- README.md (update) - Uitgebreide gebruikershandleiding
-- Code comments en docstrings toevoegen
+- README.md (update) - Uitgebreide gebruikershandleiding met screenshots
+- CONTRIBUTING.md - Richtlijnen voor bijdragen
+- API documentatie in Swagger/OpenAPI formaat
 
 ### Stap 10: Extra Features (nice-to-have)
 **Omschrijving:** Toevoegen van export functionaliteit, meerdere personen vergelijken, historische data
 **Doel:** De applicatie uitbreiden met features die het nog waardevoller maken voor HR-professionals bij het analyseren van feedbacktrends over tijd.
-**Bestanden:**
-- Nieuwe routes en functionaliteiten in app.py en data_processor.py
-- UI updates in frontend bestanden
+**Features:**
+- Export radar chart als PNG/PDF
+- Vergelijk meerdere personen in één chart
+- Historische trend analyse
+- Competentie drill-down met sub-scores

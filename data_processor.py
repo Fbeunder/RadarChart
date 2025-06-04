@@ -5,7 +5,7 @@ Deze module verwerkt Excel bestanden met feedbackdata en zet deze om naar
 bruikbare scores per competentie voor radar chart visualisatie.
 
 Auteur: RadarChart Development Team
-Versie: 1.0
+Versie: 2.0
 """
 
 import pandas as pd
@@ -13,35 +13,30 @@ import numpy as np
 from typing import Dict, List, Tuple, Optional, Any
 import logging
 from pathlib import Path
+import re
 
 # Logging configuratie
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Competentie categorieën gebaseerd op 360-feedback modellen
-COMPETENCY_CATEGORIES = {
-    "Leiderschap": ["Visie", "Besluitvorming", "Delegeren", "Inspireren", "Coaching"],
-    "Communicatie": ["Luisteren", "Presenteren", "Feedback geven", "Overtuigen", "Duidelijkheid"],
-    "Samenwerking": ["Teamwork", "Conflicthantering", "Netwerken", "Empathie", "Samenwerken"],
-    "Resultaatgerichtheid": ["Planning", "Uitvoering", "Kwaliteit", "Efficiency", "Doelgerichtheid"],
-    "Persoonlijke Ontwikkeling": ["Leren", "Aanpassingsvermogen", "Innovatie", "Zelfreflectie", "Groei"]
+# Score mapping van tekst naar numeriek
+SCORE_MAPPING = {
+    'nooit': 1,
+    'zelden': 2,
+    'soms': 3,
+    'vaak': 4,
+    'zeer vaak': 5,
+    'weet ik niet': None,  # Wordt genegeerd in berekeningen
+    'n.v.t.': None,
+    'nvt': None,
+    '': None
 }
 
-# Verwachte kolommen in Excel bestand
-REQUIRED_COLUMNS = [
-    'Persoon',           # Naam van beoordeelde persoon
-    'Beoordelaar',       # Naam van beoordelaar
-    'Competentie',       # Naam van competentie
-    'Score',             # Score (1-5 schaal)
-    'Type'               # Type feedback: 'self', 'peer', 'manager'
-]
-
-# Optionele kolommen
-OPTIONAL_COLUMNS = [
-    'Opmerkingen',       # Tekstuele feedback
-    'Datum',             # Datum van beoordeling
-    'Afdeling',          # Afdeling van persoon
-    'Functie'            # Functie van persoon
+# Verwachte basis kolommen
+BASE_COLUMNS = [
+    'Timestamp',
+    'Wie ben jij?',
+    'Voor welke collega vul je dit formulier in?'
 ]
 
 class DataProcessingError(Exception):
@@ -55,6 +50,8 @@ class ExcelProcessor:
         self.df = None
         self.processed_data = {}
         self.validation_errors = []
+        self.competency_columns = []
+        self.competency_categories = {}
     
     def read_excel_file(self, file_path: str) -> pd.DataFrame:
         """
@@ -70,11 +67,20 @@ class ExcelProcessor:
             DataProcessingError: Bij fouten in bestand lezen
         """
         try:
-            # Probeer verschillende Excel formaten
+            # Probeer verschillende Excel formaten en separators
             if file_path.endswith('.xlsx'):
                 df = pd.read_excel(file_path, engine='openpyxl')
             elif file_path.endswith('.xls'):
                 df = pd.read_excel(file_path, engine='xlrd')
+            elif file_path.endswith('.csv'):
+                # Probeer verschillende separators
+                for sep in [';', ',', '\t']:
+                    try:
+                        df = pd.read_csv(file_path, sep=sep)
+                        if len(df.columns) > 1:  # Succesvolle split
+                            break
+                    except:
+                        continue
             else:
                 raise DataProcessingError(f"Niet ondersteund bestandsformaat: {file_path}")
             
@@ -83,6 +89,9 @@ class ExcelProcessor:
             # Controleer of bestand niet leeg is
             if df.empty:
                 raise DataProcessingError("Excel bestand is leeg")
+            
+            # Verwijder lege rijen (waar alle competentie scores leeg zijn)
+            df = df.dropna(how='all')
             
             self.df = df
             return df
@@ -93,6 +102,140 @@ class ExcelProcessor:
             raise DataProcessingError("Excel bestand bevat geen data")
         except Exception as e:
             raise DataProcessingError(f"Fout bij lezen Excel bestand: {str(e)}")
+    
+    def identify_competency_columns(self, df: pd.DataFrame) -> List[str]:
+        """
+        Identificeert competentie kolommen in de dataset
+        
+        Args:
+            df (pd.DataFrame): DataFrame om te analyseren
+            
+        Returns:
+            List[str]: Lijst van competentie kolommen
+        """
+        competency_columns = []
+        
+        for col in df.columns:
+            # Competentie kolommen bevatten vaak ** of specifieke patronen
+            if any(marker in str(col) for marker in ['**', 'ANALYSE', 'KWALITEIT', 'KLANT', 'PROJECT', 'TEAM', 'LEIDER', 'INNOVATIE']):
+                competency_columns.append(col)
+            # Of kolommen die scores bevatten
+            elif col not in BASE_COLUMNS and df[col].dropna().astype(str).str.lower().isin(SCORE_MAPPING.keys()).any():
+                competency_columns.append(col)
+        
+        self.competency_columns = competency_columns
+        logger.info(f"Gevonden competentie kolommen: {len(competency_columns)}")
+        return competency_columns
+    
+    def extract_competency_categories(self, columns: List[str]) -> Dict[str, List[str]]:
+        """
+        Extraheert competentie categorieën uit kolomnamen
+        
+        Args:
+            columns (List[str]): Lijst van competentie kolommen
+            
+        Returns:
+            Dict[str, List[str]]: Mapping van categorieën naar sub-competenties
+        """
+        categories = {}
+        
+        for col in columns:
+            # Probeer categorie te extraheren tussen ** **
+            match = re.search(r'\*\*([^*]+)\*\*', col)
+            if match:
+                full_category = match.group(1)
+                # Split op ' - ' om hoofdcategorie te krijgen
+                main_category = full_category.split(' - ')[0].strip()
+                
+                # Extract sub-competentie beschrijving tussen []
+                sub_match = re.search(r'\[([^\]]+)\]', col)
+                sub_competency = sub_match.group(1) if sub_match else col
+                
+                if main_category not in categories:
+                    categories[main_category] = []
+                categories[main_category].append({
+                    'column': col,
+                    'description': sub_competency
+                })
+        
+        self.competency_categories = categories
+        logger.info(f"Gevonden competentie categorieën: {list(categories.keys())}")
+        return categories
+    
+    def convert_wide_to_long(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Converteert wide format (competenties als kolommen) naar long format
+        
+        Args:
+            df (pd.DataFrame): Wide format DataFrame
+            
+        Returns:
+            pd.DataFrame: Long format DataFrame
+        """
+        # Identificeer competentie kolommen
+        competency_columns = self.identify_competency_columns(df)
+        
+        if not competency_columns:
+            raise DataProcessingError("Geen competentie kolommen gevonden")
+        
+        # Extract categorieën
+        categories = self.extract_competency_categories(competency_columns)
+        
+        # Bepaal id kolommen (niet-competentie kolommen)
+        id_columns = [col for col in df.columns if col not in competency_columns]
+        
+        # Melt de dataframe
+        long_df = pd.melt(
+            df,
+            id_vars=id_columns,
+            value_vars=competency_columns,
+            var_name='Competentie_Raw',
+            value_name='Score_Text'
+        )
+        
+        # Voeg categorie informatie toe
+        def get_category(comp_raw):
+            for cat, comps in categories.items():
+                for comp in comps:
+                    if comp['column'] == comp_raw:
+                        return cat
+            return 'Overig'
+        
+        long_df['Competentie'] = long_df['Competentie_Raw'].apply(get_category)
+        
+        # Map persoon en beoordelaar kolommen
+        if 'Voor welke collega vul je dit formulier in?' in long_df.columns:
+            long_df['Persoon'] = long_df['Voor welke collega vul je dit formulier in?'].str.strip()
+        
+        if 'Wie ben jij?' in long_df.columns:
+            long_df['Beoordelaar'] = long_df['Wie ben jij?'].str.strip()
+        
+        # Bepaal feedback type
+        def determine_feedback_type(row):
+            if pd.isna(row.get('Persoon')) or pd.isna(row.get('Beoordelaar')):
+                return 'peer'
+            
+            persoon = str(row['Persoon']).lower().strip()
+            beoordelaar = str(row['Beoordelaar']).lower().strip()
+            
+            # Self assessment als persoon en beoordelaar (bijna) gelijk zijn
+            if persoon in beoordelaar or beoordelaar in persoon:
+                return 'self'
+            # Voor nu alles als peer, later kunnen we manager logic toevoegen
+            else:
+                return 'peer'
+        
+        long_df['Type'] = long_df.apply(determine_feedback_type, axis=1)
+        
+        # Converteer scores naar numeriek
+        long_df['Score'] = long_df['Score_Text'].str.lower().str.strip().map(SCORE_MAPPING)
+        
+        # Verwijder rijen zonder geldige score
+        long_df = long_df[long_df['Score'].notna()]
+        
+        logger.info(f"Data geconverteerd van wide naar long format: {len(long_df)} rijen")
+        
+        return long_df
     
     def validate_excel_structure(self, df: pd.DataFrame) -> Tuple[bool, List[str]]:
         """
@@ -106,95 +249,33 @@ class ExcelProcessor:
         """
         errors = []
         
-        # Controleer aanwezigheid verplichte kolommen
-        missing_columns = [col for col in REQUIRED_COLUMNS if col not in df.columns]
-        if missing_columns:
-            errors.append(f"Ontbrekende verplichte kolommen: {', '.join(missing_columns)}")
+        # Check voor basis kolommen
+        missing_base = []
+        for col in ['Wie ben jij?', 'Voor welke collega vul je dit formulier in?']:
+            if col not in df.columns:
+                missing_base.append(col)
         
-        # Controleer data types en waarden
-        if 'Score' in df.columns:
-            # Valideer score range (1-5)
-            invalid_scores = df[~df['Score'].between(1, 5, inclusive='both')]
-            if not invalid_scores.empty:
-                errors.append(f"Ongeldige scores gevonden (moeten tussen 1-5 zijn): {len(invalid_scores)} rijen")
-            
-            # Controleer op niet-numerieke scores
-            non_numeric_scores = df[pd.to_numeric(df['Score'], errors='coerce').isna()]
-            if not non_numeric_scores.empty:
-                errors.append(f"Niet-numerieke scores gevonden: {len(non_numeric_scores)} rijen")
+        if missing_base:
+            errors.append(f"Ontbrekende basis kolommen: {', '.join(missing_base)}")
         
-        # Controleer feedback types
-        if 'Type' in df.columns:
-            valid_types = ['self', 'peer', 'manager']
-            invalid_types = df[~df['Type'].str.lower().isin(valid_types)]
-            if not invalid_types.empty:
-                unique_invalid = invalid_types['Type'].unique()
-                errors.append(f"Ongeldige feedback types: {', '.join(unique_invalid)}. Geldige types: {', '.join(valid_types)}")
+        # Check voor competentie kolommen
+        competency_columns = self.identify_competency_columns(df)
+        if len(competency_columns) < 5:
+            errors.append(f"Te weinig competentie kolommen gevonden: {len(competency_columns)}")
         
-        # Controleer op lege verplichte velden
-        for col in REQUIRED_COLUMNS:
-            if col in df.columns:
-                empty_values = df[df[col].isna() | (df[col] == '')]
-                if not empty_values.empty:
-                    errors.append(f"Lege waarden in verplichte kolom '{col}': {len(empty_values)} rijen")
+        # Check voor data
+        if len(df) < 1:
+            errors.append("Geen data rijen gevonden")
         
         self.validation_errors = errors
         return len(errors) == 0, errors
-    
-    def map_feedback_structure(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Mapt Excel kolommen naar verwachte data structuur
-        
-        Args:
-            df (pd.DataFrame): Ruwe Excel data
-            
-        Returns:
-            pd.DataFrame: Gemapte en geschoonde data
-        """
-        # Maak kopie om originele data te behouden
-        mapped_df = df.copy()
-        
-        # Normaliseer kolomnamen (verwijder spaties, maak lowercase)
-        column_mapping = {}
-        for col in df.columns:
-            clean_col = col.strip().lower()
-            if 'persoon' in clean_col or 'naam' in clean_col:
-                column_mapping[col] = 'Persoon'
-            elif 'beoordelaar' in clean_col or 'reviewer' in clean_col:
-                column_mapping[col] = 'Beoordelaar'
-            elif 'competentie' in clean_col or 'skill' in clean_col:
-                column_mapping[col] = 'Competentie'
-            elif 'score' in clean_col or 'rating' in clean_col:
-                column_mapping[col] = 'Score'
-            elif 'type' in clean_col or 'category' in clean_col:
-                column_mapping[col] = 'Type'
-        
-        # Pas mapping toe
-        mapped_df = mapped_df.rename(columns=column_mapping)
-        
-        # Normaliseer data waarden
-        if 'Type' in mapped_df.columns:
-            mapped_df['Type'] = mapped_df['Type'].str.lower().str.strip()
-        
-        if 'Persoon' in mapped_df.columns:
-            mapped_df['Persoon'] = mapped_df['Persoon'].str.strip()
-        
-        if 'Competentie' in mapped_df.columns:
-            mapped_df['Competentie'] = mapped_df['Competentie'].str.strip()
-        
-        # Converteer scores naar numeriek
-        if 'Score' in mapped_df.columns:
-            mapped_df['Score'] = pd.to_numeric(mapped_df['Score'], errors='coerce')
-        
-        logger.info(f"Data structuur gemapped: {len(mapped_df)} rijen verwerkt")
-        return mapped_df
     
     def calculate_competency_scores(self, feedback_data: pd.DataFrame, person_name: str) -> Dict[str, Any]:
         """
         Berekent gemiddelde scores per competentie voor een persoon
         
         Args:
-            feedback_data (pd.DataFrame): Feedback data
+            feedback_data (pd.DataFrame): Feedback data in long format
             person_name (str): Naam van persoon om scores voor te berekenen
             
         Returns:
@@ -213,25 +294,52 @@ class ExcelProcessor:
         for competentie in person_data['Competentie'].unique():
             comp_data = person_data[person_data['Competentie'] == competentie]
             
+            # Filter out None scores (van 'Weet ik niet' etc.)
+            valid_scores = comp_data['Score'].dropna()
+            
+            if len(valid_scores) == 0:
+                continue
+            
             # Algemeen gemiddelde
-            avg_score = comp_data['Score'].mean()
+            avg_score = valid_scores.mean()
             
             # Scores per feedback type
             type_scores = {}
             for feedback_type in comp_data['Type'].unique():
                 type_data = comp_data[comp_data['Type'] == feedback_type]
-                type_scores[feedback_type] = {
-                    'average': type_data['Score'].mean(),
-                    'count': len(type_data),
-                    'scores': type_data['Score'].tolist()
-                }
+                type_valid_scores = type_data['Score'].dropna()
+                
+                if len(type_valid_scores) > 0:
+                    type_scores[feedback_type] = {
+                        'average': type_valid_scores.mean(),
+                        'count': len(type_valid_scores),
+                        'scores': type_valid_scores.tolist()
+                    }
             
             competency_scores[competentie] = round(avg_score, 2)
             competency_details[competentie] = {
                 'overall_average': round(avg_score, 2),
                 'by_type': type_scores,
-                'total_responses': len(comp_data),
-                'std_deviation': round(comp_data['Score'].std(), 2)
+                'total_responses': len(valid_scores),
+                'std_deviation': round(valid_scores.std(), 2) if len(valid_scores) > 1 else 0
+            }
+        
+        # Voeg KLANTGERICHTHEID samen als die gesplitst is
+        klant_keys = [k for k in competency_scores.keys() if 'KLANTGERICHTHEID' in k]
+        if len(klant_keys) > 1:
+            # Bereken gemiddelde van alle KLANTGERICHTHEID scores
+            klant_scores = [competency_scores[k] for k in klant_keys]
+            combined_score = round(np.mean(klant_scores), 2)
+            
+            # Verwijder individuele scores en voeg gecombineerde toe
+            for k in klant_keys:
+                del competency_scores[k]
+                del competency_details[k]
+            
+            competency_scores['KLANTGERICHTHEID'] = combined_score
+            competency_details['KLANTGERICHTHEID'] = {
+                'overall_average': combined_score,
+                'note': 'Gecombineerd uit meerdere sub-competenties'
             }
         
         return {
@@ -246,7 +354,7 @@ class ExcelProcessor:
         Berekent team gemiddelden per competentie
         
         Args:
-            feedback_data (pd.DataFrame): Alle feedback data
+            feedback_data (pd.DataFrame): Alle feedback data in long format
             
         Returns:
             Dict[str, float]: Team gemiddelden per competentie
@@ -260,11 +368,26 @@ class ExcelProcessor:
             person_averages = []
             for person in comp_data['Persoon'].unique():
                 person_comp_data = comp_data[comp_data['Persoon'] == person]
-                person_avg = person_comp_data['Score'].mean()
-                person_averages.append(person_avg)
+                valid_scores = person_comp_data['Score'].dropna()
+                
+                if len(valid_scores) > 0:
+                    person_avg = valid_scores.mean()
+                    person_averages.append(person_avg)
             
-            team_avg = np.mean(person_averages)
-            team_averages[competentie] = round(team_avg, 2)
+            if person_averages:
+                team_avg = np.mean(person_averages)
+                team_averages[competentie] = round(team_avg, 2)
+        
+        # Combineer KLANTGERICHTHEID sub-competenties
+        klant_keys = [k for k in team_averages.keys() if 'KLANTGERICHTHEID' in k]
+        if len(klant_keys) > 1:
+            klant_scores = [team_averages[k] for k in klant_keys]
+            combined_score = round(np.mean(klant_scores), 2)
+            
+            for k in klant_keys:
+                del team_averages[k]
+            
+            team_averages['KLANTGERICHTHEID'] = combined_score
         
         logger.info(f"Team gemiddelden berekend voor {len(team_averages)} competenties")
         return team_averages
@@ -282,7 +405,8 @@ class ExcelProcessor:
         if 'Persoon' not in feedback_data.columns:
             return []
         
-        persons = feedback_data['Persoon'].unique().tolist()
+        persons = feedback_data['Persoon'].dropna().unique().tolist()
+        persons = [p for p in persons if p and str(p).strip()]  # Filter lege namen
         persons.sort()  # Alfabetisch sorteren
         return persons
     
@@ -300,24 +424,24 @@ class ExcelProcessor:
             # Stap 1: Lees Excel bestand
             df = self.read_excel_file(file_path)
             
-            # Stap 2: Map data structuur
-            mapped_df = self.map_feedback_structure(df)
-            
-            # Stap 3: Valideer structuur
-            is_valid, errors = self.validate_excel_structure(mapped_df)
+            # Stap 2: Valideer structuur
+            is_valid, errors = self.validate_excel_structure(df)
             if not is_valid:
                 raise DataProcessingError(f"Validatie fouten: {'; '.join(errors)}")
             
+            # Stap 3: Converteer van wide naar long format
+            long_df = self.convert_wide_to_long(df)
+            
             # Stap 4: Bereken team gemiddelden
-            team_averages = self.calculate_team_averages(mapped_df)
+            team_averages = self.calculate_team_averages(long_df)
             
             # Stap 5: Bereken individuele scores
-            available_persons = self.get_available_persons(mapped_df)
+            available_persons = self.get_available_persons(long_df)
             persons_data = {}
             
             for person in available_persons:
                 try:
-                    person_scores = self.calculate_competency_scores(mapped_df, person)
+                    person_scores = self.calculate_competency_scores(long_df, person)
                     persons_data[person] = person_scores
                 except Exception as e:
                     logger.warning(f"Fout bij verwerken data voor {person}: {str(e)}")
@@ -329,13 +453,15 @@ class ExcelProcessor:
                 'persons': persons_data,
                 'team_averages': team_averages,
                 'available_persons': available_persons,
-                'total_responses': len(mapped_df),
+                'total_responses': len(long_df),
                 'competencies': list(team_averages.keys()),
                 'processing_summary': {
-                    'total_rows_processed': len(mapped_df),
+                    'total_rows_processed': len(df),
+                    'total_feedback_entries': len(long_df),
                     'persons_found': len(available_persons),
                     'competencies_found': len(team_averages),
-                    'validation_errors': self.validation_errors
+                    'validation_errors': self.validation_errors,
+                    'competency_categories': list(self.competency_categories.keys())
                 }
             }
             
@@ -357,31 +483,17 @@ def create_sample_excel_structure() -> pd.DataFrame:
     Returns:
         pd.DataFrame: Voorbeeld data structuur
     """
-    sample_data = []
-    
-    persons = ["Jan Jansen", "Maria Pietersen", "Peter de Vries", "Lisa van Dam", "Tom Bakker"]
-    competencies = ["Communicatie", "Teamwork", "Leiderschap", "Probleemoplossing", "Creativiteit", "Analytisch denken"]
-    feedback_types = ["self", "peer", "manager"]
-    
-    # Genereer sample data
-    for person in persons:
-        for competentie in competencies:
-            for feedback_type in feedback_types:
-                # Simuleer 2-3 beoordelaars per type
-                num_reviewers = np.random.randint(2, 4)
-                for i in range(num_reviewers):
-                    reviewer = f"{feedback_type}_reviewer_{i+1}" if feedback_type != "self" else person
-                    score = np.random.randint(3, 6)  # Scores tussen 3-5
-                    
-                    sample_data.append({
-                        'Persoon': person,
-                        'Beoordelaar': reviewer,
-                        'Competentie': competentie,
-                        'Score': score,
-                        'Type': feedback_type,
-                        'Opmerkingen': f"Sample feedback voor {competentie}",
-                        'Datum': '2024-01-15'
-                    })
+    # Nieuwe structuur met competenties als kolommen
+    sample_data = {
+        'Timestamp': ['2024-01-15 10:00', '2024-01-15 10:30', '2024-01-15 11:00'],
+        'Wie ben jij?': ['Jan Jansen', 'Maria Pietersen', 'Peter de Vries'],
+        'Voor welke collega vul je dit formulier in?': ['Maria Pietersen', 'Jan Jansen', 'Jan Jansen'],
+        '🔹 **PROBLEEMANALYSE** [Begrijpt de kern]': ['Vaak', 'Zeer vaak', 'Soms'],
+        '🔹 **KWALITEITSZORG** [Levert hoge kwaliteit]': ['Zeer vaak', 'Vaak', 'Vaak'],
+        '🔹 **KLANTGERICHTHEID** [Communiceert effectief]': ['Soms', 'Vaak', 'Zeer vaak'],
+        '🔹 **TEAMSPELER** [Toont inzet]': ['Vaak', 'Zeer vaak', 'Vaak'],
+        '🔹 **LEIDERSCHAP** [Behandelt met respect]': ['Zeer vaak', 'Vaak', 'Soms']
+    }
     
     return pd.DataFrame(sample_data)
 
@@ -412,43 +524,47 @@ def validate_excel_file(file_path: str) -> Tuple[bool, List[str]]:
     processor = ExcelProcessor()
     try:
         df = processor.read_excel_file(file_path)
-        mapped_df = processor.map_feedback_structure(df)
-        return processor.validate_excel_structure(mapped_df)
+        return processor.validate_excel_structure(df)
     except Exception as e:
         return False, [str(e)]
 
 if __name__ == "__main__":
     # Test de module met sample data
-    print("🧪 Testing Data Processor Module...")
+    print("🧪 Testing Data Processor Module v2.0...")
     
     # Creëer sample data
     sample_df = create_sample_excel_structure()
     print(f"✅ Sample data gecreëerd: {len(sample_df)} rijen")
+    print(f"   Kolommen: {list(sample_df.columns)[:3]}...")
     
     # Test processor
     processor = ExcelProcessor()
-    processor.df = sample_df
     
     # Test validatie
     is_valid, errors = processor.validate_excel_structure(sample_df)
-    print(f"✅ Validatie: {'Geslaagd' if is_valid else 'Gefaald'}")
+    print(f"\n✅ Validatie: {'Geslaagd' if is_valid else 'Gefaald'}")
     if errors:
         for error in errors:
             print(f"   ❌ {error}")
     
-    # Test score berekening
+    # Test conversie
     try:
-        team_avg = processor.calculate_team_averages(sample_df)
+        long_df = processor.convert_wide_to_long(sample_df)
+        print(f"\n✅ Wide naar long conversie: {len(long_df)} feedback entries")
+        
+        # Test score berekening
+        team_avg = processor.calculate_team_averages(long_df)
         print(f"✅ Team gemiddelden berekend: {len(team_avg)} competenties")
         
-        persons = processor.get_available_persons(sample_df)
-        print(f"✅ Personen gevonden: {len(persons)}")
+        persons = processor.get_available_persons(long_df)
+        print(f"✅ Personen gevonden: {len(persons)} - {', '.join(persons)}")
         
         if persons:
-            person_scores = processor.calculate_competency_scores(sample_df, persons[0])
+            person_scores = processor.calculate_competency_scores(long_df, persons[0])
             print(f"✅ Individuele scores berekend voor: {persons[0]}")
+            print(f"   Competenties: {list(person_scores['scores'].keys())}")
             
     except Exception as e:
         print(f"❌ Fout bij testen: {str(e)}")
     
-    print("🎉 Data Processor Module test voltooid!")
+    print("\n🎉 Data Processor Module v2.0 test voltooid!")
