@@ -15,7 +15,7 @@ function RadarChart(id, data, options) {
         labelFactor: 1.35,         // Hoe ver de labels van de center staan (verhoogd voor betere zichtbaarheid)
         wrapWidth: 80,             // Aantal pixels voordat label wrap (verhoogd voor lange namen)
         opacityArea: 0.35,         // Opacity van de area
-        dotRadius: 4,              // Grootte van de dots
+        dotRadius: 5,              // Grootte van de dots
         opacityCircles: 0.1,       // Opacity van de concentrische cirkels
         strokeWidth: 2,            // Breedte van de stroke
         roundStrokes: false,       // Ronde of rechte strokes
