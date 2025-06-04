@@ -146,6 +146,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Hide export controls while loading
+        if (window.chartExporter) {
+            window.chartExporter.hideExportControls();
+        }
+
         resultsSection.style.display = 'block';
         radarChartContainer.innerHTML = '<div class="loading-spinner"></div><p style="text-align: center; margin-top: 15px;">Laden van feedback data...</p>';
         resultsSection.scrollIntoView({ behavior: 'smooth' });
@@ -247,8 +252,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         <strong>✨ Hover over areas</strong><br>
                         Highlight effect voor betere focus
                     </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <strong>📥 Download chart</strong><br>
+                        Exporteer als PNG of SVG bestand
+                    </div>
                 </div>`;
             radarChartContainer.appendChild(instructionsDiv);
+
+            // Initialize export functionality after chart is ready
+            if (window.chartExporter) {
+                // Small delay to ensure chart is fully rendered
+                setTimeout(() => {
+                    window.chartExporter.initializeForChart(personName);
+                }, 500);
+            }
 
         } catch (error) {
             console.error('Radar chart error:', error);
