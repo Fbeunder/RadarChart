@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 dotRadius: 4,
                 strokeWidth: 2,
                 roundStrokes: false,
-                color: d3.scaleOrdinal().domain([0, 1]).range(["#3498db", "#27ae60"])
+                color: d3.scaleOrdinal().domain([0, 1]).range(["#27ae60", "#3498db"])
             };
 
             let scoresData = scores;
