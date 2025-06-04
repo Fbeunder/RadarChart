@@ -34,7 +34,7 @@
 - static/js/script.js (nieuw) - Upload handling, API calls, UI updates
 
 ### Stap 6: D3.js Radar Chart Visualisatie (must-have)
-**Omschrijving:** Ontwikkel de interactieve radar chart met D3.js
+**Omschrijving:** Ontwikkel de interactieve radar chart met D3.js. Style: https://gist.github.com/nbremer/21746a9668ffdf6d8242
 **Doel:** Feedbackresultaten visueel presenteren in een radar chart die direct inzicht geeft in sterktes en ontwikkelpunten. De vergelijking met teamgemiddelden helpt bij het identificeren van relatieve prestaties.
 **Bestanden:**
 - static/js/radarChart.js (nieuw) - D3.js implementatie voor dual-dataset radar chart
