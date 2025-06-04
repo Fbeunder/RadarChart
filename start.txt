@@ -1,0 +1,164 @@
+Oké, hier is een ontwerpplan dat je aan een developer kunt geven voor het bouwen van de feedbackanalyse-applicatie.
+
+## Ontwerpplan: Feedback Analyse & Visualisatie Applicatie
+
+**1. Overzicht** 🎯
+Een lokaal draaiende webapplicatie waarmee gebruikers een Excel-bestand met feedbackresultaten kunnen uploaden. De applicatie berekent per persoon de gemiddelde score per competentiegebied en vergelijkt dit met het gemiddelde van alle personen. De resultaten worden gevisualiseerd in een interactieve radar chart met D3.js.
+
+**2. Kernfunctionaliteiten** ✨
+* **Excel Upload:** Gebruikers kunnen een Excel-bestand uploaden met de feedbackdata.
+* **Dataverwerking:**
+    * Automatische mapping van tekstuele antwoorden ("Zeer vaak", "Vaak", etc.) naar numerieke scores (4, 3, 2, 1). "Weet ik niet" wordt genegeerd bij het berekenen van gemiddelden, maar kan wel geteld worden.
+    * Samenvoegen van "KLANTGERICHTHEID met boodschap overbrengen" en "KLANTGERICHTHEID met behoefte ophalen" tot één competentie: "KLANTGERICHTHEID".
+    * Berekening van de gemiddelde score per gedefinieerd competentiegebied voor elke beoordeelde collega.
+    * Berekening van de algehele gemiddelde score per competentiegebied over alle beoordeelde collega's heen.
+* **Persoonselectie:** Gebruikers kunnen een specifieke collega selecteren uit een lijst (automatisch gegenereerd uit het Excel-bestand).
+* **Radar Chart Visualisatie:**
+    * Toont de scores van de geselecteerde collega voor elk competentiegebied.
+    * Toont tegelijkertijd de algehele gemiddelde scores voor die competentiegebieden ter vergelijking.
+    * Gebaseerd op D3.js.
+* **Lokale Uitvoering:** De gehele applicatie moet lokaal kunnen draaien.
+
+**3. Technische Stack** 🛠️
+* **Backend:** Python
+    * **Framework:** Flask (lichtgewicht en geschikt voor dit doel)
+    * **Dataverwerking:** Pandas (voor Excel-parsing en data manipulatie), openpyxl (voor .xlsx bestanden)
+* **Frontend:**
+    * HTML5
+    * CSS3 (voor basis styling)
+    * JavaScript (ES6+)
+    * D3.js (v7 of recent, voor de radar chart)
+* **Ontwikkelomgeving:** Standaard Python virtuele omgeving.
+
+**4. Applicatie Architectuur** 🏗️
+
+* **Backend (Python/Flask - `app.py`, `data_processor.py`)**
+    * **`data_processor.py` (Module voor dataverwerking):**
+        * **Functie voor Excel inlezen:** Leest het geüploade Excel-bestand in een Pandas DataFrame.
+        * **Functie voor pre-processing:**
+            * Definieert de 8 hoofdcompetentiegebieden:
+                1.  PROBLEEMANALYSE
+                2.  KWALITEITSZORG
+                3.  KLANTGERICHTHEID (gecombineerd)
+                4.  PROJECTMANAGEMENT
+                5.  TEAMSPELER
+                6.  COLLEGIALE ONTWIKKELING
+                7.  LEIDERSCHAP EN INTEGRITEIT
+                8.  INNOVATIE EN COMMERCIE
+            * Mapt de volledige kolomnamen uit het Excel-bestand (bv. "🔹 **PROBLEEMANALYSE** - ...") naar deze 8 competentiegebieden.
+            * Converteert tekstuele antwoorden naar scores (4, 3, 2, 1), en "Weet ik niet" naar NaN (of een andere marker om te negeren bij gemiddelden).
+        * **Functie voor berekenen individuele scores:**
+            * Identificeert unieke beoordeelde collega's (uit kolom "Voor welke collega vul je dit formulier in?").
+            * Voor elke beoordeelde collega:
+                * Filtert alle feedbackrijen voor deze collega.
+                * Voor elke feedbackrij en elk van de 8 competentiegebieden: berekent de gemiddelde score op basis van de relevante vraagkolommen voor dat gebied.
+                * Berekent de uiteindelijke gemiddelde score per competentiegebied voor de collega door de gemiddelden van alle ontvangen feedbackformulieren te middelen.
+        * **Functie voor berekenen algeheel gemiddelde:**
+            * Berekent per competentiegebied het gemiddelde van de *uiteindelijke individuele scores* van alle beoordeelde collega's.
+        * **Data opslag:** Verwerkte data (individuele scores, overall averages, lijst van personen) wordt in het geheugen van de Flask-applicatie gehouden na een upload. (Voor eenvoud; geen database nodig voor dit initiële ontwerp).
+    * **`app.py` (Flask applicatie):**
+        * **Route `/`:** Levert de `index.html` pagina.
+        * **Route `/upload` (POST):**
+            * Ontvangt het geüploade Excel-bestand.
+            * Roept `data_processor.py` aan om de data te verwerken.
+            * Slaat de verwerkte resultaten op (bijv. in een globale variabele of een simpele cache).
+            * Retourneert een lijst met unieke beoordeelde collega's naar de frontend.
+        * **Route `/get_scores/<person_name>` (GET):**
+            * Ontvangt de naam van de geselecteerde collega.
+            * Haalt de berekende scores voor deze collega en de algehele gemiddelden op.
+            * Retourneert deze data als JSON, in een formaat geschikt voor de D3.js radar chart (zie sectie 5).
+
+* **Frontend (HTML/CSS/JavaScript - in `static` en `templates` mappen)**
+    * **`templates/index.html`:**
+        * Titel, basis layout.
+        * `<input type="file" id="excelUpload">` voor het uploaden van het Excel-bestand.
+        * `<select id="personSelector"></select>` om een collega te kiezen.
+        * `<div id="radarChartContainer"></div>` waar de D3.js grafiek getoond wordt.
+        * Link naar `static/js/d3.min.js` (of CDN) en `static/js/script.js`.
+    * **`static/js/script.js`:**
+        * **Event listener voor file upload:**
+            * Bij selectie van een bestand: stuurt het bestand via `fetch` (POST) naar de `/upload` endpoint.
+            * Bij succes: ontvangt lijst van collega's, vult de `#personSelector` dropdown.
+        * **Event listener voor person selectie:**
+            * Bij selectie van een collega: stuurt een `fetch` (GET) request naar `/get_scores/<person_name>`.
+            * Bij succes: ontvangt JSON data, roept de D3.js radar chart functie aan om de grafiek te tekenen/updaten in `#radarChartContainer`.
+    * **`static/js/radarChart.js` (optioneel, voor modulariteit):**
+        * Bevat de D3.js code voor het genereren van de radar chart. Deze functie accepteert de data (individuele en overall scores) en de container ID.
+        * De radar chart moet twee datasets kunnen tonen (bijv. met verschillende kleuren/lijnstijlen).
+    * **`static/css/style.css`:** Basis styling voor de pagina en de chart.
+
+**5. Dataformaat voor Radar Chart (voorbeeld JSON van backend naar frontend)**
+De data voor de D3.js radar chart zou er als volgt uit kunnen zien:
+```json
+{
+  "personName": "Tom",
+  "competencies": [
+    {"axis": "PROBLEEMANALYSE", "individualScore": 3.5, "overallScore": 3.2},
+    {"axis": "KWALITEITSZORG", "individualScore": 3.8, "overallScore": 3.5},
+    {"axis": "KLANTGERICHTHEID", "individualScore": 4.0, "overallScore": 3.6},
+    {"axis": "PROJECTMANAGEMENT", "individualScore": 3.1, "overallScore": 3.3},
+    {"axis": "TEAMSPELER", "individualScore": 3.9, "overallScore": 3.7},
+    {"axis": "COLLEGIALE ONTWIKKELING", "individualScore": 3.3, "overallScore": 3.1},
+    {"axis": "LEIDERSCHAP EN INTEGRITEIT", "individualScore": 3.6, "overallScore": 3.4},
+    {"axis": "INNOVATIE EN COMMERCIE", "individualScore": 2.9, "overallScore": 3.0}
+  ]
+}
+```
+Deze structuur is makkelijk te itereren in D3.js om de assen en de datapunten voor de twee series (individueel vs. overall) te tekenen.
+
+**6. Workflow Gebruiker** 🚶‍♀️➡️📊
+1.  Developer start de Flask applicatie lokaal (`python app.py`).
+2.  Gebruiker opent de browser en navigeert naar de lokale URL (bv. `http://127.0.0.1:5000`).
+3.  Gebruiker selecteert het Excel-bestand via de upload knop.
+4.  Frontend stuurt bestand naar backend; backend verwerkt het en stuurt lijst van collega's terug.
+5.  Frontend vult de dropdown met namen van collega's.
+6.  Gebruiker selecteert een collega uit de dropdown.
+7.  Frontend vraagt scores op voor deze collega.
+8.  Backend stuurt de specifieke scores en de overall gemiddelden als JSON.
+9.  Frontend (D3.js) rendert de radar chart met deze data.
+
+**7. Mogelijke Projectstructuur** 📁
+```
+/feedback_visualisatie
+|-- app.py                 # Hoofd Flask applicatie bestand
+|-- data_processor.py      # Module voor alle data logica
+|-- /templates
+|   |-- index.html         # De enige HTML pagina
+|-- /static
+|   |-- /css
+|   |   |-- style.css      # CSS stijlen
+|   |-- /js
+|   |   |-- d3.v7.min.js   # D3.js bibliotheek (lokaal of via CDN)
+|   |   |-- script.js      # Frontend logica (uploads, calls, D3 aanroepen)
+|   |   |-- radarChart.js  # (Optioneel) aparte D3 radar chart code
+|-- requirements.txt       # Lijst van Python dependencies (Flask, Pandas, openpyxl)
+|-- README.md              # Instructies voor setup en gebruik
+```
+
+**8. Setup en Lokale Uitvoering** 🚀
+1.  Maak een Python virtual environment en activeer deze.
+2.  Installeer dependencies: `pip install -r requirements.txt`
+    * `requirements.txt` inhoud:
+        ```
+        Flask
+        pandas
+        openpyxl
+        ```
+3.  Start de Flask applicatie: `python app.py`
+4.  Open de applicatie in een browser (meestal `http://127.0.0.1:5000/`).
+
+**9. Belangrijke Aandachtspunten voor de Developer** 🧐
+* **Mapping Kolomnamen:** De exacte (lange) kolomnamen uit het Excel-bestand moeten correct gemapt worden naar de 8 gedefinieerde competentiegebieden. Maak dit configureerbaar of duidelijk gedocumenteerd in de code.
+* **"Weet ik niet" afhandeling:** Zorg dat deze antwoorden correct genegeerd worden bij het berekenen van gemiddelden (bijv. door ze als `NaN` te behandelen in Pandas en dan `mean()` te gebruiken, wat `NaN`s negeert).
+* **Error Handling:** Implementeer basis error handling (bv. voor ongeldig bestandsformaat, ontbrekende cruciale kolommen).
+* **D3.js Radar Chart:** Er zijn veel voorbeelden van D3.js radar charts online. Kies een duidelijk en aanpasbaar voorbeeld als basis. Zorg dat het twee datasets kan tonen.
+* **Excel Kolomnamen:** De developer moet de exacte namen van de kolommen weten, inclusief de kolom "Voor welke collega vul je dit formulier in?". Het voorbeeld in de prompt ("Voor welke collega vul je dit formulier in?") is hier leidend.
+
+Voorbeeld set van de data:
+Timestamp;Wie ben jij?;Wat is je mailadres;Voor welke collega vul je dit formulier in?;Op welk project baseer je je feedback?;🔹 **PROBLEEMANALYSE - Laat deze collega zien een goede probleemanalyse uit te kunnen voeren?** [Begrijpt de kern van het probleem door de juiste vragen te stellen aan de klant];🔹 **PROBLEEMANALYSE - Laat deze collega zien een goede probleemanalyse uit te kunnen voeren?** [Biedt effectieve en haalbare oplossingen voor klantproblemen];🔹 **PROBLEEMANALYSE - Laat deze collega zien een goede probleemanalyse uit te kunnen voeren?** [Herkent de onderliggende oorzaken van problemen];🔹 **KWALITEITSZORG - Draagt deze collega zorg voor hoogwaardige kwaliteit in het werk?** [Levert analyses en code van hoge kwaliteit];🔹 **KWALITEITSZORG - Draagt deze collega zorg voor hoogwaardige kwaliteit in het werk?** [Toont vindingrijkheid bij probleemoplossing];🔹 **KWALITEITSZORG - Draagt deze collega zorg voor hoogwaardige kwaliteit in het werk?** [Toetst analyses aan de werkelijkheid, controleert of deze wel reëel zijn en valideert resultaten];🔹 **KLANTGERICHTHEID met boodschap overbrengen - Communiceert deze collega effectief en duidelijk?** [Communiceert resultaten, inzichten of analyses op een begrijpelijke manier];🔹 **KLANTGERICHTHEID met boodschap overbrengen - Communiceert deze collega effectief en duidelijk?** [Zet analyse-uitkomsten of ontwikkelvoorstellen om in praktische en begrijpbare adviezen];🔹 **KLANTGERICHTHEID met boodschap overbrengen - Communiceert deze collega effectief en duidelijk?** [Past zijn/haar communicatiestijl aan om effectief aan te sluiten bij de tegenpartij];🔹 **KLANTGERICHTHEID met behoefte ophalen - Is deze collega klantgericht in zijn/haar benadering?** [Begrijpt de behoeften van de klant en betrekt de klant actief bij het proces];🔹 **KLANTGERICHTHEID met behoefte ophalen - Is deze collega klantgericht in zijn/haar benadering?** [Luistert actief naar de klant en weet in het gesprek de (verschillende) standpunten te identificeren en te benoemen];🔹 **KLANTGERICHTHEID met behoefte ophalen - Is deze collega klantgericht in zijn/haar benadering?** [Reageert adequaat op veranderingen in klantbehoeften];🔹 **PROJECTMANAGEMENT - Beheert deze collega projecten efficiënt en succesvol?** [Heeft de doelen scherp en bewaakt de scope van het project];🔹 **PROJECTMANAGEMENT - Beheert deze collega projecten efficiënt en succesvol?** [Structureert en verdeelt het werk effectief gedurende het project];🔹 **PROJECTMANAGEMENT - Beheert deze collega projecten efficiënt en succesvol?** [Handhaaft een acceptabel werktempo en respecteert persoonlijke verplichtingen van teamleden];🔹 **TEAMSPELER - Toont deze collega goed teamwork en samenwerking?** [Toont inzet om teamleden te betrekken en te ondersteunen];🔹 **TEAMSPELER - Toont deze collega goed teamwork en samenwerking?** [Staat open voor uitdagingen en nieuwe ideeën];🔹 **TEAMSPELER - Toont deze collega goed teamwork en samenwerking?** [Genereert enthousiasme en motiveert het team];🔹 **COLLEGIALE ONTWIKKELING - Bevordert deze collega de ontwikkeling van zijn/haar collega's?** [Is beschikbaar en benaderbaar voor collega’s];🔹 **COLLEGIALE ONTWIKKELING - Bevordert deze collega de ontwikkeling van zijn/haar collega's?** [Draagt actief kennis en ervaring over aan collega's];🔹 **COLLEGIALE ONTWIKKELING - Bevordert deze collega de ontwikkeling van zijn/haar collega's?** [Begeleidt teamleden succesvol en stimuleert hun professionele groei];🔹 **LEIDERSCHAP EN INTEGRITEIT - Laat deze collega leiderschap en integriteit zien in zijn/haar werk?** [Behandelt iedereen met respect, ongeacht achtergrond of positie];🔹 **LEIDERSCHAP EN INTEGRITEIT - Laat deze collega leiderschap en integriteit zien in zijn/haar werk?** [Draagt bij aan een positieve en ondersteunende werkomgeving];🔹 **LEIDERSCHAP EN INTEGRITEIT - Laat deze collega leiderschap en integriteit zien in zijn/haar werk?** [Toont doorzettingsvermogen bij obstakels en uitdagingen];🔹 **INNOVATIE EN COMMERCIE - Draagt deze collega bij aan vernieuwing en commercieel succes?** [Denkt proactief mee over nieuwe kansen en mogelijkheden in de markt];🔹 **INNOVATIE EN COMMERCIE - Draagt deze collega bij aan vernieuwing en commercieel succes?** [Vertaalt klantbehoeften effectief naar innovatieve oplossingen of diensten];🔹 **INNOVATIE EN COMMERCIE - Draagt deze collega bij aan vernieuwing en commercieel succes?** [Initieert en stimuleert vernieuwende ideeën binnen het team]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+19-2-2025 14:01;Stan ;stan@laks.nl;Tom;NL - HaskoningDHV Nederland BV - ROBAA - PowerAll 2025;Zeer vaak;Zeer vaak;Zeer vaak;Vaak;Vaak;Vaak;Vaak;Vaak;Zeer vaak;Soms;Zeer vaak;Vaak;Vaak;Vaak;Zeer vaak;Zeer vaak;Zeer vaak;Vaak;Zeer vaak;Vaak;Vaak;Zeer vaak;Zeer vaak;Zeer vaak;Soms;Vaak;Vaak
+19-2-2025 14:13;Stan ;stan@laks.nl;Anne de ;NL - HaskoningDHV Nederland BV - ROBAA - PowerAll 2025;Soms;Vaak;Vaak;Vaak;Vaak;Vaak;Vaak;Soms;Soms;Soms;Soms;Soms;Vaak;Vaak;Zeer vaak;Zeer vaak;Vaak;Vaak;Zeer vaak;Vaak;Soms;Zeer vaak;Vaak;Vaak;Zelden;Soms;Soms
+19-2-2025 14:21;Tom ;tom@laks.nl;Koen ;NL - HaskoningDHV Nederland BV - ROBAA - PowerAll 2025;Zeer vaak;Zeer vaak;Zeer vaak;Zeer vaak;Vaak;Zeer vaak;Vaak;Vaak;Vaak;Zeer vaak;Vaak;Zeer vaak;Zeer vaak;Vaak;Zeer vaak;Zeer vaak;Vaak;Vaak;Vaak;Vaak;Vaak;Zeer vaak;Vaak;Zeer vaak;Zeer vaak;Zeer vaak;Soms
+19-2-2025 14:23;Tom ;tom@laks.nl;Anne ;NL - HaskoningDHV Nederland BV - ROBAA - PowerAll 2025;Soms;Vaak;Soms;Zeer vaak;Zeer vaak;Zeer vaak;Vaak;Soms;Soms;Soms;Vaak;Weet ik niet;Weet ik niet;Soms;Zeer vaak;Zeer vaak;Zeer vaak;Zeer vaak;Zeer vaak;Zeer vaak;Zelden;Zeer vaak;Zeer vaak;Vaak;Soms;Vaak;Vaak
+
