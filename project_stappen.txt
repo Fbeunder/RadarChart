@@ -6,19 +6,7 @@
 3. **Data Processing Module v1**: Originele Excel verwerking voor long format data
 4. **Data Check & Update v2**: Data processor aangepast voor wide format, tekstuele scores, KLANTGERICHTHEID combinatie
 5. **Frontend Basis Interface**: Moderne upload interface met drag & drop, personen selectie, styling en JavaScript interactie
-
-### Stap 6: D3.js Radar Chart Visualisatie (must-have)
-**Omschrijving:** Ontwikkel de interactieve radar chart met D3.js. Style: https://gist.github.com/nbremer/21746a9668ffdf6d8242
-**Doel:** Feedbackresultaten visueel presenteren in een radar chart die direct inzicht geeft in sterktes en ontwikkelpunten. De vergelijking met teamgemiddelden helpt bij het identificeren van relatieve prestaties.
-**Bestanden:**
-- static/js/radarChart.js (nieuw) - D3.js implementatie voor dual-dataset radar chart
-- Update index.html voor D3.js CDN link
-- Update main.js om radar chart aan te roepen
-**Acceptatiecriteria:**
-- Radar chart toont individuele scores en team gemiddelden
-- Interactieve tooltips met exacte scores
-- Legenda voor individueel vs team
-- Responsive design voor verschillende schermgroottes
+6. **D3.js Radar Chart Visualisatie**: Interactieve radar chart met D3.js v7, dual-dataset support, tooltips, legenda, responsive design
 
 ### Stap 7: Testing & Optimalisatie (nice-to-have)
 **Omschrijving:** Uitgebreide tests met verschillende datasets en performance optimalisatie
@@ -27,14 +15,24 @@
 - test_data/ map met verschillende test Excel bestanden
 - Performance optimalisaties in data_processor.py
 - Unit tests voor kritieke functies
+**Acceptatiecriteria:**
+- Geautomatiseerde tests voor verschillende Excel formaten
+- Performance benchmarks voor grote datasets
+- Error handling tests voor edge cases
 
 ### Stap 8: Uitgebreide Documentatie (nice-to-have)
 **Omschrijving:** Gedetailleerde gebruikersdocumentatie en code documentatie
 **Doel:** De applicatie toegankelijk maken voor nieuwe gebruikers en ontwikkelaars die het project willen uitbreiden of onderhouden.
 **Bestanden:**
-- README.md (update) - Uitgebreide gebruikershandleiding met screenshots
+- README.md (update) - Screenshots en video tutorials toevoegen
 - CONTRIBUTING.md - Richtlijnen voor bijdragen
 - API documentatie in Swagger/OpenAPI formaat
+- Gebruikershandleiding met voorbeelden
+**Acceptatiecriteria:**
+- Stap-voor-stap screenshots van het upload proces
+- Video demonstratie van de applicatie
+- Technische API documentatie
+- Troubleshooting sectie
 
 ### Stap 9: Extra Features (nice-to-have)
 **Omschrijving:** Toevoegen van export functionaliteit, meerdere personen vergelijken, historische data
@@ -44,3 +42,8 @@
 - Vergelijk meerdere personen in één chart
 - Historische trend analyse
 - Competentie drill-down met sub-scores
+- Batch processing voor meerdere bestanden
+**Acceptatiecriteria:**
+- Export functionaliteit werkt in alle browsers
+- Multi-persoon vergelijking is overzichtelijk
+- Historische data kan worden geïmporteerd en gevisualiseerd
