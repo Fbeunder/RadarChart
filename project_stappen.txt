@@ -6,11 +6,8 @@
 ### ✅ Stap 2: Backend Core - Flask Applicatie (VOLTOOID)
 **Samenvatting:** Flask backend core geïmplementeerd met app.py (Flask server op poort 5010, routes voor /, /upload, /get_scores/<person_name>, /status, CORS headers, error handling, in-memory data storage, mock data voor testing) en templates/index.html (basis homepage met API documentatie en professionele styling).
 
-### Stap 3: Data Processing Module (must-have)
-**Omschrijving:** Ontwikkel de module voor Excel verwerking en score berekeningen
-**Doel:** Feedbackdata uit Excel bestanden kunnen inlezen, verwerken en omzetten naar bruikbare scores per competentie. Dit maakt het mogelijk om de ruwe data om te zetten in inzichtelijke informatie voor de gebruiker.
-**Bestanden:**
-- data_processor.py (nieuw) - Excel parsing, score mapping, competentie berekeningen
+### ✅ Stap 3: Data Processing Module (VOLTOOID)
+**Samenvatting:** Complete data processing module geïmplementeerd met data_processor.py (Excel parsing voor .xlsx/.xls, data structuur mapping, score berekeningen per competentie, team gemiddelden, ondersteuning voor self/peer/manager feedback types, uitgebreide validatie en error handling). App.py geüpdatet met integratie van ExcelProcessor, nieuwe endpoints (/validate, /get_person_details), tijdelijke bestand opslag. Requirements.txt uitgebreid met numpy en xlrd.
 
 ### Stap 4: Frontend Basis Interface (must-have)
 **Omschrijving:** Maak de HTML interface met upload functionaliteit
