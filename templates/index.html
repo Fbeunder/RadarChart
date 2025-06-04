@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RadarChart - Feedback Analyse & Visualisatie</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- D3.js v7 voor radar chart visualisatie -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -75,6 +77,7 @@
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='js/radarChart.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
