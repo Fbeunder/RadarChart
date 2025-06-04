@@ -5,6 +5,9 @@ import tempfile
 from datetime import datetime
 import json
 from data_processor import ExcelProcessor, DataProcessingError
+import cairosvg
+from PIL import Image
+import io
 
 # Flask applicatie initialisatie
 app = Flask(__name__)
@@ -50,6 +53,7 @@ def index():
                 <p>Backend server is actief op poort 5010</p>
                 <p>Upload functionaliteit: POST naar /upload</p>
                 <p>Scores ophalen: GET /get_scores/&lt;person_name&gt;</p>
+                <p>GIF Export: POST /export_gif</p>
                 <h2>Ondersteunde Excel Formaten:</h2>
                 <ul>
                     <li>.xlsx (Excel 2007+)</li>
@@ -170,6 +174,57 @@ def upload_file():
     except Exception as e:
         return jsonify({
             'error': f'Fout bij uploaden bestand: {str(e)}',
+            'success': False
+        }), 500
+
+@app.route('/export_gif', methods=['POST'])
+def export_gif():
+    """Converteer SVG naar GIF en sla op"""
+    try:
+        data = request.json
+        svg_data = data.get('svg_data')
+        person_name = data.get('person_name')
+        export_path = data.get('export_path', 'C:\\temp')
+        
+        if not svg_data or not person_name:
+            return jsonify({
+                'error': 'SVG data en persoon naam zijn verplicht',
+                'success': False
+            }), 400
+        
+        # Maak export directory aan als deze niet bestaat
+        os.makedirs(export_path, exist_ok=True)
+        
+        # Genereer bestandsnaam
+        date_str = datetime.now().strftime('%Y%m%d')
+        filename = f"{date_str}_{person_name.replace(' ', '_')}.gif"
+        filepath = os.path.join(export_path, filename)
+        
+        # Converteer SVG naar PNG eerst (GIF direct wordt niet ondersteund)
+        png_data = cairosvg.svg2png(bytestring=svg_data.encode('utf-8'))
+        
+        # Converteer PNG naar GIF met Pillow
+        image = Image.open(io.BytesIO(png_data))
+        
+        # Converteer RGBA naar RGB met witte achtergrond
+        if image.mode == 'RGBA':
+            background = Image.new('RGB', image.size, (255, 255, 255))
+            background.paste(image, mask=image.split()[3])
+            image = background
+        
+        # Sla op als GIF
+        image.save(filepath, 'GIF', optimize=True)
+        
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'filepath': filepath,
+            'message': f'GIF succesvol opgeslagen: {filepath}'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'error': f'Fout bij exporteren GIF: {str(e)}',
             'success': False
         }), 500
 
@@ -368,6 +423,7 @@ if __name__ == '__main__':
     print("📁 Upload endpoint: POST /upload")
     print("📈 Scores endpoint: GET /get_scores/<person_name>")
     print("🔍 Details endpoint: GET /get_person_details/<person_name>")
+    print("🎯 GIF Export endpoint: POST /export_gif")
     print("✅ Validatie endpoint: POST /validate")
     print("ℹ️  Status endpoint: GET /status")
     print("📋 Ondersteunde formaten: .xlsx, .xls")
