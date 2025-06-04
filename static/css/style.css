@@ -333,6 +333,141 @@ h1 {
     border: 1px solid #bee5eb;
 }
 
+/* Batch Export Styles */
+.batch-export-controls {
+    background-color: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+.batch-export-controls h4 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.batch-info {
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+.batch-info span {
+    font-weight: bold;
+    color: #3498db;
+}
+
+.batch-export-btn {
+    background-color: #9b59b6;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.batch-export-btn:hover {
+    background-color: #8e44ad;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.batch-export-btn:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.batch-progress {
+    margin-top: 20px;
+}
+
+.batch-progress-bar {
+    width: 100%;
+    height: 30px;
+    background-color: #ecf0f1;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+}
+
+.batch-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #9b59b6 0%, #8e44ad 100%);
+    width: 0%;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.batch-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(
+        45deg,
+        rgba(255,255,255,.2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255,255,255,.2) 50%,
+        rgba(255,255,255,.2) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 50px 50px;
+    animation: move 1s linear infinite;
+}
+
+@keyframes move {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 50px 50px;
+    }
+}
+
+.batch-progress-text {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #7f8c8d;
+}
+
+.batch-status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.batch-status.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.batch-status.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.batch-status.processing {
+    background-color: #cce5ff;
+    color: #004085;
+    border: 1px solid #b8daff;
+}
+
 /* API Info (inklapbaar) */
 .api-info {
     background-color: #f8f9fa;
@@ -427,6 +562,10 @@ h1 {
     .export-btn {
         justify-content: center;
     }
+    
+    .batch-export-controls {
+        padding: 15px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -453,6 +592,10 @@ h1 {
     .export-controls {
         padding: 20px 15px;
     }
+    
+    .batch-export-controls {
+        padding: 15px 10px;
+    }
 }
 
 /* Animaties */
@@ -468,7 +611,8 @@ h1 {
 }
 
 .person-selection,
-.results-section {
+.results-section,
+.batch-export-controls {
     animation: fadeIn 0.5s ease;
 }
 
