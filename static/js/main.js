@@ -235,11 +235,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const maxWidth = Math.min(containerWidth * 0.9, 600);
             const chartSize = Math.min(maxWidth, window.innerHeight * 0.6);
 
-            // Voeg titel toe
+            // Voeg titel toe BOVEN de chart (zonder icon)
             const titleDiv = document.createElement('div');
             titleDiv.style.textAlign = 'center';
-            titleDiv.style.marginBottom = '20px';
-            titleDiv.innerHTML = `<h4 style="margin: 0; color: #2c3e50;">🎯 Feedback Analyse voor ${personName}</h4>`;
+            titleDiv.style.marginBottom = '30px';
+            titleDiv.innerHTML = `<h4 style="margin: 0; color: #2c3e50; font-size: 1.4em;">Feedback Analyse voor ${personName}</h4>`;
             radarChartContainer.appendChild(titleDiv);
 
             // Maak chart container
@@ -252,11 +252,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const chartOptions = {
                 w: chartSize,
                 h: chartSize,
-                margin: { top: 50, right: 80, bottom: 50, left: 80 },
+                margin: { top: 60, right: 100, bottom: 60, left: 100 }, // Meer ruimte voor labels
                 levels: 5,
                 maxValue: 5,
-                labelFactor: 1.25,
-                wrapWidth: 60,
+                labelFactor: 1.3, // Iets verder van center voor betere leesbaarheid
+                wrapWidth: 80, // Meer ruimte voor lange labels
                 opacityArea: 0.35,
                 dotRadius: 4,
                 strokeWidth: 2,
@@ -279,17 +279,32 @@ document.addEventListener('DOMContentLoaded', function() {
             // Initialiseer radar chart
             currentChart = initializeRadarChart('#radar-chart-svg', scoresData, personName, chartOptions);
 
-            // Voeg instructies toe
+            // Voeg instructies toe ONDER de chart
             const instructionsDiv = document.createElement('div');
             instructionsDiv.style.textAlign = 'center';
-            instructionsDiv.style.marginTop = '20px';
-            instructionsDiv.style.color = '#7f8c8d';
+            instructionsDiv.style.marginTop = '30px';
+            instructionsDiv.style.padding = '20px';
+            instructionsDiv.style.backgroundColor = '#f8f9fa';
+            instructionsDiv.style.borderRadius = '8px';
+            instructionsDiv.style.color = '#495057';
             instructionsDiv.style.fontSize = '14px';
+            instructionsDiv.style.lineHeight = '1.6';
             instructionsDiv.innerHTML = `
-                <p><strong>💡 Instructies:</strong></p>
-                <p>• Hover over de punten voor exacte scores</p>
-                <p>• Klik op de legenda om datasets te tonen/verbergen</p>
-                <p>• Hover over de areas voor highlight effect</p>
+                <p style="margin: 0 0 15px 0; font-weight: bold; color: #2c3e50;">💡 Hoe de radar chart te gebruiken:</p>
+                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <strong>🖱️ Hover over punten</strong><br>
+                        Zie exacte scores per competentie
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <strong>🎯 Klik op legenda</strong><br>
+                        Toon/verberg individuele of team scores
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <strong>✨ Hover over areas</strong><br>
+                        Highlight effect voor betere focus
+                    </div>
+                </div>
             `;
             radarChartContainer.appendChild(instructionsDiv);
 
