@@ -65,25 +65,177 @@ class ChartExporter {
                 throw new Error('Geen radar chart gevonden om te exporteren');
             }
 
-            // Clone SVG to avoid modifying the original
-            const svgClone = svgElement.cloneNode(true);
-            
-            // Add inline styles for proper export with color preservation
-            this.addInlineStyles(svgClone);
+            // Create a complete export SVG with title and legend
+            const completeSvg = await this.createCompleteExportSvg(svgElement);
             
             // Generate filename
             const filename = this.generateFileName(format);
             
             if (format === 'svg') {
-                await this.downloadSVG(svgClone, filename);
+                await this.downloadSVG(completeSvg, filename);
             } else if (format === 'png') {
-                await this.convertSVGtoPNG(svgClone, filename);
+                await this.convertSVGtoPNG(completeSvg, filename);
             }
             
         } catch (error) {
             console.error('Export error:', error);
             this.showExportStatus('error', `❌ Export mislukt: ${error.message}`);
         }
+    }
+
+    async createCompleteExportSvg(originalSvg) {
+        // Clone the original SVG
+        const svgClone = originalSvg.cloneNode(true);
+        
+        // Get original dimensions
+        const originalWidth = parseInt(svgClone.getAttribute('width')) || 800;
+        const originalHeight = parseInt(svgClone.getAttribute('height')) || 600;
+        
+        // Calculate new dimensions with space for title and legend
+        const titleHeight = 80;
+        const legendHeight = 60;
+        const padding = 40;
+        
+        const newWidth = originalWidth + (padding * 2);
+        const newHeight = originalHeight + titleHeight + legendHeight + (padding * 2);
+        
+        // Create new SVG container
+        const newSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        newSvg.setAttribute('width', newWidth);
+        newSvg.setAttribute('height', newHeight);
+        newSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        newSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+        
+        // Add white background
+        const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        background.setAttribute('width', '100%');
+        background.setAttribute('height', '100%');
+        background.setAttribute('fill', 'white');
+        newSvg.appendChild(background);
+        
+        // Add title
+        const titleGroup = this.createTitleElement(newWidth, titleHeight, padding);
+        newSvg.appendChild(titleGroup);
+        
+        // Create container for the original chart
+        const chartGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        chartGroup.setAttribute('transform', `translate(${padding}, ${titleHeight + padding})`);
+        
+        // Copy all children from the cloned SVG to the chart group
+        while (svgClone.firstChild) {
+            chartGroup.appendChild(svgClone.firstChild);
+        }
+        
+        newSvg.appendChild(chartGroup);
+        
+        // Add legend
+        const legendGroup = this.createLegendElement(newWidth, originalHeight + titleHeight + padding + 20);
+        newSvg.appendChild(legendGroup);
+        
+        // Apply inline styles for proper export
+        this.addInlineStyles(newSvg);
+        
+        return newSvg;
+    }
+
+    createTitleElement(containerWidth, titleHeight, padding) {
+        const titleGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        titleGroup.setAttribute('class', 'export-title');
+        
+        // Main title
+        const mainTitle = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        mainTitle.setAttribute('x', containerWidth / 2);
+        mainTitle.setAttribute('y', padding + 25);
+        mainTitle.setAttribute('text-anchor', 'middle');
+        mainTitle.setAttribute('font-family', 'Arial, sans-serif');
+        mainTitle.setAttribute('font-size', '20px');
+        mainTitle.setAttribute('font-weight', 'bold');
+        mainTitle.setAttribute('fill', '#2c3e50');
+        mainTitle.textContent = `Feedback Analyse voor ${this.currentPersonName}`;
+        titleGroup.appendChild(mainTitle);
+        
+        // Subtitle
+        const subtitle = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        subtitle.setAttribute('x', containerWidth / 2);
+        subtitle.setAttribute('y', padding + 50);
+        subtitle.setAttribute('text-anchor', 'middle');
+        subtitle.setAttribute('font-family', 'Arial, sans-serif');
+        subtitle.setAttribute('font-size', '14px');
+        subtitle.setAttribute('fill', '#7f8c8d');
+        
+        // Add current date
+        const currentDate = new Date().toLocaleDateString('nl-NL', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        subtitle.textContent = `Radar Chart Analyse - ${currentDate}`;
+        titleGroup.appendChild(subtitle);
+        
+        return titleGroup;
+    }
+
+    createLegendElement(containerWidth, yPosition) {
+        const legendGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        legendGroup.setAttribute('class', 'export-legend');
+        
+        // Legend title
+        const legendTitle = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        legendTitle.setAttribute('x', containerWidth / 2);
+        legendTitle.setAttribute('y', yPosition);
+        legendTitle.setAttribute('text-anchor', 'middle');
+        legendTitle.setAttribute('font-family', 'Arial, sans-serif');
+        legendTitle.setAttribute('font-size', '14px');
+        legendTitle.setAttribute('font-weight', 'bold');
+        legendTitle.setAttribute('fill', '#2c3e50');
+        legendTitle.textContent = 'Legenda:';
+        legendGroup.appendChild(legendTitle);
+        
+        // Individual score legend item
+        const individualGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        individualGroup.setAttribute('transform', `translate(${containerWidth / 2 - 120}, ${yPosition + 25})`);
+        
+        const individualRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        individualRect.setAttribute('width', '20');
+        individualRect.setAttribute('height', '15');
+        individualRect.setAttribute('fill', '#3498db');
+        individualRect.setAttribute('rx', '3');
+        individualGroup.appendChild(individualRect);
+        
+        const individualText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        individualText.setAttribute('x', '30');
+        individualText.setAttribute('y', '12');
+        individualText.setAttribute('font-family', 'Arial, sans-serif');
+        individualText.setAttribute('font-size', '12px');
+        individualText.setAttribute('fill', '#2c3e50');
+        individualText.textContent = this.currentPersonName;
+        individualGroup.appendChild(individualText);
+        
+        legendGroup.appendChild(individualGroup);
+        
+        // Team average legend item
+        const teamGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        teamGroup.setAttribute('transform', `translate(${containerWidth / 2 + 20}, ${yPosition + 25})`);
+        
+        const teamRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        teamRect.setAttribute('width', '20');
+        teamRect.setAttribute('height', '15');
+        teamRect.setAttribute('fill', '#27ae60');
+        teamRect.setAttribute('rx', '3');
+        teamGroup.appendChild(teamRect);
+        
+        const teamText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        teamText.setAttribute('x', '30');
+        teamText.setAttribute('y', '12');
+        teamText.setAttribute('font-family', 'Arial, sans-serif');
+        teamText.setAttribute('font-size', '12px');
+        teamText.setAttribute('fill', '#2c3e50');
+        teamText.textContent = 'Team Gemiddelde';
+        teamGroup.appendChild(teamText);
+        
+        legendGroup.appendChild(teamGroup);
+        
+        return legendGroup;
     }
 
     addInlineStyles(svgElement) {
@@ -215,6 +367,19 @@ class ChartExporter {
                     element.style.strokeWidth = '2px';
                 }
             }
+
+            if (element.tagName === 'rect') {
+                // Handle rectangles (for legend items)
+                const fill = computedStyle.fill;
+                const stroke = computedStyle.stroke;
+                
+                if (fill && fill !== 'none' && fill !== 'rgba(0, 0, 0, 0)') {
+                    element.style.fill = fill;
+                }
+                if (stroke && stroke !== 'none' && stroke !== 'rgba(0, 0, 0, 0)') {
+                    element.style.stroke = stroke;
+                }
+            }
         });
         
         // Ensure proper namespace and attributes for SVG export
@@ -229,6 +394,9 @@ class ChartExporter {
             .legend { font-size: 12px; font-weight: 500; fill: #2c3e50; text-anchor: middle; }
             .gridCircle { fill: #CDCDCD; stroke: #CDCDCD; fill-opacity: 0.1; }
             .line { stroke: white; stroke-width: 2px; }
+            .export-title text { font-family: Arial, sans-serif; }
+            .export-legend text { font-family: Arial, sans-serif; }
+            .export-legend rect { rx: 3; }
         `;
         svgElement.insertBefore(styleElement, svgElement.firstChild);
     }
@@ -258,18 +426,22 @@ class ChartExporter {
                 const ctx = canvas.getContext('2d');
                 
                 // Get SVG dimensions
-                const svgRect = svgElement.getBoundingClientRect();
-                const svgWidth = svgRect.width || 800;
-                const svgHeight = svgRect.height || 600;
+                const svgWidth = parseInt(svgElement.getAttribute('width')) || 800;
+                const svgHeight = parseInt(svgElement.getAttribute('height')) || 600;
                 
-                // Set canvas size with padding
-                const padding = 50;
-                canvas.width = svgWidth + (padding * 2);
-                canvas.height = svgHeight + (padding * 2);
+                // Set canvas size with high DPI for better quality
+                const scale = 2; // 2x resolution for crisp export
+                canvas.width = svgWidth * scale;
+                canvas.height = svgHeight * scale;
+                canvas.style.width = svgWidth + 'px';
+                canvas.style.height = svgHeight + 'px';
+                
+                // Scale context for high DPI
+                ctx.scale(scale, scale);
                 
                 // Fill white background
                 ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillRect(0, 0, svgWidth, svgHeight);
                 
                 // Convert SVG to data URL
                 const svgData = new XMLSerializer().serializeToString(svgElement);
@@ -281,8 +453,8 @@ class ChartExporter {
                 
                 img.onload = () => {
                     try {
-                        // Draw image centered with padding
-                        ctx.drawImage(img, padding, padding, svgWidth, svgHeight);
+                        // Draw image
+                        ctx.drawImage(img, 0, 0, svgWidth, svgHeight);
                         
                         // Convert canvas to blob and download
                         canvas.toBlob((blob) => {
