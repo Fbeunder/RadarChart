@@ -21,11 +21,10 @@ logger = logging.getLogger(__name__)
 
 # Score mapping van tekst naar numeriek
 SCORE_MAPPING = {
-    'nooit': 1,
-    'zelden': 2,
-    'soms': 3,
-    'vaak': 4,
-    'zeer vaak': 5,
+    'zelden': 1,
+    'soms': 2,
+    'vaak': 3,
+    'zeer vaak': 4,
     'weet ik niet': None,  # Wordt genegeerd in berekeningen
     'n.v.t.': None,
     'nvt': None,
