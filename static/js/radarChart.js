@@ -10,8 +10,8 @@ function RadarChart(id, data, options) {
         w: 600,                    // Breedte van de chart
         h: 600,                    // Hoogte van de chart
         margin: {top: 20, right: 20, bottom: 20, left: 20}, // Marges
-        levels: 5,                 // Aantal concentrische cirkels
-        maxValue: 5,               // Maximum waarde op de schaal
+        levels: 4,                 // Aantal concentrische cirkels
+        maxValue: 4,               // Maximum waarde op de schaal
         labelFactor: 1.35,         // Hoe ver de labels van de center staan (verhoogd voor betere zichtbaarheid)
         wrapWidth: 80,             // Aantal pixels voordat label wrap (verhoogd voor lange namen)
         opacityArea: 0.35,         // Opacity van de area
