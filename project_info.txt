@@ -1,10 +1,10 @@
 ## Project Informatie: Feedback Analyse & Visualisatie Applicatie
 
 ### Projectomschrijving
-Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-graden feedbackresultaten. De applicatie verwerkt Excel-bestanden met feedbackdata, berekent gemiddelde scores per competentiegebied voor individuele medewerkers, en visualiseert deze in een interactieve radar chart waarbij individuele scores worden vergeleken met teamgemiddelden.
+Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-graden feedbackresultaten. De applicatie verwerkt Excel-bestanden met feedbackdata, berekent gemiddelde scores per competentiegebied voor individuele medewerkers, en visualiseert deze in een interactieve radar chart waarbij individuele scores worden vergeleken met teamgemiddelden. Inclusief batch export functionaliteit voor het genereren van alle radar charts in één keer.
 
 ### Project Doel, Nut en Functie
-**Doel:** Het mogelijk maken om op een visueel aantrekkelijke en inzichtelijke manier feedbackresultaten te analyseren en te presenteren, zodat medewerkers en managers direct kunnen zien waar iemands sterktes liggen en waar ontwikkelpunten zijn ten opzichte van het teamgemiddelde.
+**Doel:** Het mogelijk maken om op een visueel aantrekkelijke en inzichtelijke manier feedbackresultaten te analyseren en te presenteren, zodat medewerkers en managers direct kunnen zien waar iemands sterktes liggen en waar ontwikkelpunten zijn ten opzichte van het teamgemiddelde. Daarnaast het efficiënt exporteren van alle visualisaties voor gebruik in presentaties en rapporten.
 
 **Doelgroep:** HR-professionals, teamleiders en managers die 360-graden feedback processen faciliteren en de resultaten willen bespreken met medewerkers.
 
@@ -13,6 +13,8 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
 - Objectieve vergelijking tussen individuele prestaties en teamgemiddelden
 - Identificatie van ontwikkelgebieden en sterktes per competentie
 - Ondersteuning bij ontwikkelgesprekken en persoonlijke groeiplannen
+- Batch export voor efficiënte rapportage en archivering
+- Offline gebruik van gegenereerde visualisaties
 
 **Belangrijke aandachtspunten:**
 - Applicatie moet lokaal draaien (privacy-gevoelige data)
@@ -24,9 +26,9 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
 ### Architectuur/Modulestructuur
 
 #### Backend (Python/Flask)
-1. **app.py** - Hoofdapplicatie ✅ VOLTOOID (v2.1 - Bug fix)
+1. **app.py** - Hoofdapplicatie ✅ VOLTOOID (v3.0 - Batch Export)
    - Flask server configuratie (poort 5010)
-   - Routes: /, /upload, /get_scores/<person_name>, /get_person_details/<person_name>, /validate, /status
+   - Routes: /, /upload, /get_scores/<person_name>, /get_person_details/<person_name>, /validate, /status, /export_gif
    - In-memory data opslag voor verwerkte resultaten
    - CORS headers voor lokaal gebruik
    - Error handling voor verschillende scenario's
@@ -35,6 +37,7 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - File size validatie (16MB max)
    - Comprehensive error responses
    - **BUG FIX**: Correcte data structuur voor radar chart (scores.individual_scores)
+   - **NIEUW**: SVG naar GIF conversie endpoint voor batch export
 
 2. **data_processor.py** - Dataverwerking module ✅ VOLTOOID v2.0
    - Excel/CSV inlezen met pandas/openpyxl (.xlsx, .xls ondersteuning)
@@ -50,9 +53,10 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Competency categorization met regex patterns
 
 #### Frontend (HTML/CSS/JavaScript)
-1. **templates/index.html** - Hoofdpagina ✅ VOLTOOID v3.0
+1. **templates/index.html** - Hoofdpagina ✅ VOLTOOID v4.0 (Batch Export)
    - Moderne upload interface met drag & drop functionaliteit
    - Personen selectie dropdown na succesvolle upload
+   - **NIEUW**: Batch export sectie met Create All button
    - Resultaten sectie voor feedback visualisatie
    - Inklapbare API documentatie sectie
    - Responsive design voor verschillende schermgroottes
@@ -60,22 +64,25 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - D3.js v7 CDN integratie voor radar chart visualisatie
    - Progress indicators en status feedback
 
-2. **static/css/style.css** - Styling ✅ VOLTOOID
+2. **static/css/style.css** - Styling ✅ VOLTOOID v2.0 (Batch Export)
    - Moderne, professionele interface styling
    - Gradient achtergronden en schaduwen
    - Hover effecten en animaties
    - Drag & drop visuele feedback
    - Progress bar voor upload status
+   - **NIEUW**: Batch export styling (Create All button, export dialog, progress indicators)
    - Responsive design voor mobiele apparaten
    - Consistente kleurenschema (primair: #3498db, succes: #27ae60, fout: #e74c3c)
 
-3. **static/js/main.js** - Frontend logica ✅ VOLTOOID v2.0
+3. **static/js/main.js** - Frontend logica ✅ VOLTOOID v3.0 (Batch Export)
    - Drag & drop upload handling
    - Bestandsvalidatie (type en grootte)
-   - API communicatie met backend (/upload, /get_scores)
+   - API communicatie met backend (/upload, /get_scores, /export_gif)
    - Upload progress en status feedback
    - Personen dropdown populatie
    - Radar chart integratie met D3.js component
+   - **NIEUW**: Batch export functionaliteit (Create All button, export dialog, progress tracking)
+   - **NIEUW**: SVG naar GIF conversie voor alle personen
    - Responsive chart rendering met window resize handling
    - Error handling en gebruikersfeedback
    - Fallback naar basis score weergave bij chart fouten
@@ -95,6 +102,22 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Area highlighting bij mouse hover
    - Text wrapping voor lange competentie namen
 
+### Batch Export Functionaliteit (NIEUW)
+**Create All Button Features:**
+- **Batch Processing**: Genereer radar charts voor alle personen in één keer
+- **GIF Export**: Converteer SVG visualisaties naar GIF bestanden
+- **Progress Tracking**: Real-time voortgang met huidige persoon indicator
+- **Configureerbare Export**: Gebruiker kan export locatie aanpassen
+- **Bestandsnaamconventie**: [YYYYMMDD]_[Persoonsnaam].gif
+- **Error Handling**: Robuuste foutafhandeling per persoon
+- **Cross-platform**: Werkt op Windows, Mac en Linux
+
+**Technische Implementatie:**
+- **Frontend**: JavaScript batch processing met async/await
+- **Backend**: SVG naar PNG naar GIF conversie met cairosvg en Pillow
+- **UI**: Export dialog, progress bar, status feedback
+- **Dependencies**: cairosvg==2.7.1, Pillow==10.1.0
+
 ### Radar Chart Functionaliteiten
 - **Visualisatie**: Multi-dimensionale competentie data in één overzicht
 - **Vergelijking**: Individuele scores vs team gemiddelden overlay
@@ -106,6 +129,7 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
 - **Responsive**: Past zich automatisch aan aan schermgrootte
 - **Toegankelijkheid**: Duidelijke kleuren en labels
 - **Performance**: Efficiënte rendering en cleanup
+- **Export**: SVG naar GIF conversie voor offline gebruik
 
 ### Ondersteunde Data Formaten
 Het systeem ondersteunt Excel/CSV structuren in wide format:
@@ -128,16 +152,16 @@ Competenties worden automatisch gedetecteerd uit de Excel kolomnamen. Typische c
 - **INNOVATIE EN COMMERCIE**: Kansen, oplossingen, vernieuwing
 
 ### Module Status
-- requirements.txt: ✅ Voltooid (Flask 3.0.0, pandas 2.1.4, numpy 1.24.3, openpyxl 3.1.2, xlrd 2.0.1, python-dotenv 1.0.0, Werkzeug 3.0.1)
+- requirements.txt: ✅ Voltooid v2.0 (Flask 3.0.0, pandas 2.1.4, numpy 1.24.3, openpyxl 3.1.2, xlrd 2.0.1, python-dotenv 1.0.0, Werkzeug 3.0.1, cairosvg 2.7.1, Pillow 10.1.0)
 - README.md: ✅ Voltooid (Uitgebreide documentatie met installatie en gebruik instructies)
 - Mappenstructuur: ✅ Voltooid (templates/, static/css/, static/js/ aangemaakt)
 - .gitignore: ✅ Voltooid (Python en project-specifieke exclusions)
-- app.py: ✅ Voltooid v2.1 (Flask backend core met alle routes en data_processor integratie + bug fix)
-- templates/index.html: ✅ Voltooid v3.0 (D3.js v7 CDN integratie, radar chart ready)
+- app.py: ✅ Voltooid v3.0 (Flask backend core met alle routes en data_processor integratie + export_gif endpoint)
+- templates/index.html: ✅ Voltooid v4.0 (D3.js v7 CDN integratie, radar chart ready, batch export sectie)
 - data_processor.py: ✅ Voltooid v2.0 (Wide format support, tekst score mapping, KLANTGERICHTHEID combinatie)
 - Test bestanden: ✅ Toegevoegd (test_input_data.py, verify_data_processing.py, test_sample_data.csv)
-- static/css/style.css: ✅ Voltooid (Moderne interface styling)
-- static/js/main.js: ✅ Voltooid v2.0 (Radar chart integratie, responsive handling)
+- static/css/style.css: ✅ Voltooid v2.0 (Moderne interface styling + batch export styling)
+- static/js/main.js: ✅ Voltooid v3.0 (Radar chart integratie, responsive handling + batch export functionaliteit)
 - static/js/radarChart.js: ✅ VOLTOOID (D3.js v7 interactieve radar chart visualisatie)
 
 ### Huidige Applicatie Status
@@ -150,8 +174,11 @@ Competenties worden automatisch gedetecteerd uit de Excel kolomnamen. Typische c
 - ✅ Responsive design
 - ✅ Error handling en gebruikersfeedback
 - ✅ Bug fix: Data structuur mismatch opgelost
+- ✅ **NIEUW**: Batch export functionaliteit (Create All button)
+- ✅ **NIEUW**: SVG naar GIF conversie voor alle personen
+- ✅ **NIEUW**: Export progress tracking en status feedback
 
 **Volgende Stappen** (nice-to-have):
-- Testing & optimalisatie
+- Testing & optimalisatie van batch export
 - Uitgebreide documentatie met screenshots
-- Extra features (export, multi-persoon vergelijking)
+- Extra features (PDF export, multi-persoon vergelijking)
