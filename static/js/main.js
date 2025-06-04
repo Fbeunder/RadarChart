@@ -111,6 +111,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 showStatus('success', `✅ Upload succesvol! ${data.persons.length} personen gevonden.`);
                 showProgress(100);
                 populatePersonDropdown(data.persons);
+                
+                // Activate batch export functionality
+                if (window.batchExporter) {
+                    window.batchExporter.showBatchExportControls(data.persons.length);
+                }
+                
                 setTimeout(() => {
                     personSelection.style.display = 'block';
                     personSelection.scrollIntoView({ behavior: 'smooth' });
@@ -204,18 +210,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const chartSize = Math.min(maxWidth, window.innerHeight * 0.6);
 
             const chartOptions = {
+                ...window.DEFAULT_CHART_OPTIONS,
                 w: chartSize,
-                h: chartSize,
-                margin: { top: 200, right: 400, bottom: 200, left: 400 },
-                levels: 4,
-                maxValue: 4,
-                labelFactor: 1.3,
-                wrapWidth: 120,
-                opacityArea: 0.35,
-                dotRadius: 4,
-                strokeWidth: 2,
-                roundStrokes: false,
-                color: d3.scaleOrdinal().domain([0, 1]).range(["#27ae60", "#3498db"])
+                h: chartSize
             };
 
             let scoresData = scores;
