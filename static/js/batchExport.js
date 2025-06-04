@@ -121,18 +121,9 @@ class BatchExporter {
         try {
             // Initialize radar chart met person data
             const chartOptions = {
+                ...window.DEFAULT_CHART_OPTIONS,
                 w: 600,
-                h: 600,
-                margin: { top: 100, right: 200, bottom: 100, left: 200 },
-                levels: 5,
-                maxValue: 5,
-                labelFactor: 1.3,
-                wrapWidth: 120,
-                opacityArea: 0.35,
-                dotRadius: 4,
-                strokeWidth: 2,
-                roundStrokes: false,
-                color: d3.scaleOrdinal().domain([0, 1]).range(["#3498db", "#27ae60"])
+                h: 600
             };
             
             // Render chart
