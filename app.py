@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify, render_template
 from werkzeug.utils import secure_filename
 import os
+import tempfile
 from datetime import datetime
 import json
+from data_processor import ExcelProcessor, DataProcessingError
 
 # Flask applicatie initialisatie
 app = Flask(__name__)
@@ -20,11 +22,13 @@ def after_request(response):
 processed_data = {
     "persons": {},  # Dictionary met persoon data
     "team_averages": {},  # Team gemiddelden per competentie
-    "upload_timestamp": None
+    "upload_timestamp": None,
+    "processing_summary": {},  # Samenvatting van verwerking
+    "available_persons": []  # Lijst van beschikbare personen
 }
 
 # Toegestane bestandsextensies
-ALLOWED_EXTENSIONS = {'xlsx'}
+ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
 def allowed_file(filename):
     """Controleer of bestand een toegestane extensie heeft"""
@@ -46,6 +50,19 @@ def index():
                 <p>Backend server is actief op poort 5010</p>
                 <p>Upload functionaliteit: POST naar /upload</p>
                 <p>Scores ophalen: GET /get_scores/&lt;person_name&gt;</p>
+                <h2>Ondersteunde Excel Formaten:</h2>
+                <ul>
+                    <li>.xlsx (Excel 2007+)</li>
+                    <li>.xls (Excel 97-2003)</li>
+                </ul>
+                <h2>Verwachte Excel Structuur:</h2>
+                <ul>
+                    <li><strong>Persoon</strong>: Naam van beoordeelde persoon</li>
+                    <li><strong>Beoordelaar</strong>: Naam van beoordelaar</li>
+                    <li><strong>Competentie</strong>: Naam van competentie</li>
+                    <li><strong>Score</strong>: Score (1-5 schaal)</li>
+                    <li><strong>Type</strong>: Type feedback (self, peer, manager)</li>
+                </ul>
             </body>
         </html>
         """
@@ -73,74 +90,86 @@ def upload_file():
         # Valideer bestandstype
         if not allowed_file(file.filename):
             return jsonify({
-                'error': 'Alleen .xlsx bestanden zijn toegestaan',
-                'success': False
+                'error': 'Alleen .xlsx en .xls bestanden zijn toegestaan',
+                'success': False,
+                'supported_formats': ['.xlsx', '.xls']
             }), 400
         
         # Beveilig bestandsnaam
         filename = secure_filename(file.filename)
         
-        # Mock data processing - later vervangen door echte data_processor
-        # Simuleer verwerkte data
-        mock_persons_data = {
-            "Jan Jansen": {
-                "scores": {
-                    "Communicatie": 8.5,
-                    "Teamwork": 7.8,
-                    "Leiderschap": 6.9,
-                    "Probleemoplossing": 8.2,
-                    "Creativiteit": 7.5,
-                    "Analytisch denken": 8.0
+        # Sla bestand tijdelijk op voor verwerking
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{filename.split(".")[-1]}') as temp_file:
+            file.save(temp_file.name)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Gebruik ExcelProcessor voor verwerking
+            processor = ExcelProcessor()
+            result = processor.process_excel_file(temp_file_path)
+            
+            # Verwijder tijdelijk bestand
+            os.unlink(temp_file_path)
+            
+            if not result['success']:
+                return jsonify({
+                    'error': f'Fout bij verwerken Excel bestand: {result["error"]}',
+                    'success': False,
+                    'validation_errors': result.get('validation_errors', [])
+                }), 400
+            
+            # Sla verwerkte data op in memory
+            processed_data["persons"] = {}
+            for person_name, person_data in result['persons'].items():
+                processed_data["persons"][person_name] = {
+                    "scores": person_data['scores'],
+                    "details": person_data['details'],
+                    "total_responses": person_data['total_responses']
                 }
-            },
-            "Maria Pietersen": {
-                "scores": {
-                    "Communicatie": 9.1,
-                    "Teamwork": 8.7,
-                    "Leiderschap": 8.3,
-                    "Probleemoplossing": 7.6,
-                    "Creativiteit": 8.8,
-                    "Analytisch denken": 7.9
+            
+            processed_data["team_averages"] = result['team_averages']
+            processed_data["upload_timestamp"] = datetime.now().isoformat()
+            processed_data["processing_summary"] = result['processing_summary']
+            processed_data["available_persons"] = result['available_persons']
+            
+            # Retourneer succesvol resultaat
+            return jsonify({
+                'success': True,
+                'message': f'Bestand {filename} succesvol verwerkt',
+                'persons': result['available_persons'],
+                'competencies': result['competencies'],
+                'upload_timestamp': processed_data["upload_timestamp"],
+                'processing_summary': {
+                    'total_rows_processed': result['processing_summary']['total_rows_processed'],
+                    'persons_found': result['processing_summary']['persons_found'],
+                    'competencies_found': result['processing_summary']['competencies_found'],
+                    'total_responses': result['total_responses']
                 }
-            },
-            "Peter de Vries": {
-                "scores": {
-                    "Communicatie": 7.2,
-                    "Teamwork": 8.1,
-                    "Leiderschap": 7.5,
-                    "Probleemoplossing": 8.9,
-                    "Creativiteit": 6.8,
-                    "Analytisch denken": 8.7
-                }
-            }
-        }
-        
-        # Bereken team gemiddelden
-        competenties = ["Communicatie", "Teamwork", "Leiderschap", "Probleemoplossing", "Creativiteit", "Analytisch denken"]
-        team_averages = {}
-        
-        for competentie in competenties:
-            scores = [person_data["scores"][competentie] for person_data in mock_persons_data.values()]
-            team_averages[competentie] = round(sum(scores) / len(scores), 2)
-        
-        # Sla verwerkte data op in memory
-        processed_data["persons"] = mock_persons_data
-        processed_data["team_averages"] = team_averages
-        processed_data["upload_timestamp"] = datetime.now().isoformat()
-        
-        # Retourneer lijst met beschikbare personen
-        persons_list = list(mock_persons_data.keys())
-        
-        return jsonify({
-            'success': True,
-            'message': f'Bestand {filename} succesvol verwerkt',
-            'persons': persons_list,
-            'upload_timestamp': processed_data["upload_timestamp"]
-        })
+            })
+            
+        except DataProcessingError as e:
+            # Verwijder tijdelijk bestand bij fout
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
+            
+            return jsonify({
+                'error': f'Data processing fout: {str(e)}',
+                'success': False
+            }), 400
+            
+        except Exception as e:
+            # Verwijder tijdelijk bestand bij onverwachte fout
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
+            
+            return jsonify({
+                'error': f'Onverwachte fout bij verwerken: {str(e)}',
+                'success': False
+            }), 500
         
     except Exception as e:
         return jsonify({
-            'error': f'Fout bij verwerken bestand: {str(e)}',
+            'error': f'Fout bij uploaden bestand: {str(e)}',
             'success': False
         }), 500
 
@@ -157,7 +186,7 @@ def get_scores(person_name):
         
         # Controleer of persoon bestaat
         if person_name not in processed_data["persons"]:
-            available_persons = list(processed_data["persons"].keys())
+            available_persons = processed_data["available_persons"]
             return jsonify({
                 'error': f'Persoon "{person_name}" niet gevonden',
                 'available_persons': available_persons,
@@ -171,9 +200,11 @@ def get_scores(person_name):
         radar_data = {
             'person_name': person_name,
             'person_scores': person_data["scores"],
+            'person_details': person_data["details"],
             'team_averages': processed_data["team_averages"],
             'competencies': list(person_data["scores"].keys()),
             'upload_timestamp': processed_data["upload_timestamp"],
+            'total_responses': person_data["total_responses"],
             'success': True
         }
         
@@ -185,6 +216,45 @@ def get_scores(person_name):
             'success': False
         }), 500
 
+@app.route('/get_person_details/<person_name>')
+def get_person_details(person_name):
+    """Retourneer gedetailleerde informatie voor specifieke persoon"""
+    try:
+        # Controleer of er data beschikbaar is
+        if not processed_data["persons"]:
+            return jsonify({
+                'error': 'Geen data beschikbaar. Upload eerst een Excel bestand.',
+                'success': False
+            }), 404
+        
+        # Controleer of persoon bestaat
+        if person_name not in processed_data["persons"]:
+            return jsonify({
+                'error': f'Persoon "{person_name}" niet gevonden',
+                'available_persons': processed_data["available_persons"],
+                'success': False
+            }), 404
+        
+        # Haal gedetailleerde persoon data op
+        person_data = processed_data["persons"][person_name]
+        
+        detailed_data = {
+            'person_name': person_name,
+            'scores': person_data["scores"],
+            'details': person_data["details"],
+            'total_responses': person_data["total_responses"],
+            'team_averages': processed_data["team_averages"],
+            'success': True
+        }
+        
+        return jsonify(detailed_data)
+        
+    except Exception as e:
+        return jsonify({
+            'error': f'Fout bij ophalen persoon details: {str(e)}',
+            'success': False
+        }), 500
+
 @app.route('/status')
 def status():
     """Geef status informatie van de applicatie"""
@@ -193,8 +263,77 @@ def status():
         'data_available': bool(processed_data["persons"]),
         'persons_count': len(processed_data["persons"]),
         'upload_timestamp': processed_data["upload_timestamp"],
-        'available_persons': list(processed_data["persons"].keys()) if processed_data["persons"] else []
+        'available_persons': processed_data["available_persons"],
+        'competencies_count': len(processed_data["team_averages"]),
+        'processing_summary': processed_data.get("processing_summary", {})
     })
+
+@app.route('/validate', methods=['POST'])
+def validate_file():
+    """Valideer Excel bestand zonder het volledig te verwerken"""
+    try:
+        # Controleer of er een bestand in de request zit
+        if 'file' not in request.files:
+            return jsonify({
+                'error': 'Geen bestand gevonden in request',
+                'success': False
+            }), 400
+        
+        file = request.files['file']
+        
+        # Controleer of er een bestand geselecteerd is
+        if file.filename == '':
+            return jsonify({
+                'error': 'Geen bestand geselecteerd',
+                'success': False
+            }), 400
+        
+        # Valideer bestandstype
+        if not allowed_file(file.filename):
+            return jsonify({
+                'error': 'Alleen .xlsx en .xls bestanden zijn toegestaan',
+                'success': False
+            }), 400
+        
+        # Beveilig bestandsnaam
+        filename = secure_filename(file.filename)
+        
+        # Sla bestand tijdelijk op voor validatie
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{filename.split(".")[-1]}') as temp_file:
+            file.save(temp_file.name)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Gebruik ExcelProcessor voor validatie
+            from data_processor import validate_excel_file
+            is_valid, errors = validate_excel_file(temp_file_path)
+            
+            # Verwijder tijdelijk bestand
+            os.unlink(temp_file_path)
+            
+            return jsonify({
+                'success': True,
+                'valid': is_valid,
+                'filename': filename,
+                'validation_errors': errors,
+                'message': 'Bestand is geldig en kan worden verwerkt' if is_valid else 'Bestand bevat validatie fouten'
+            })
+            
+        except Exception as e:
+            # Verwijder tijdelijk bestand bij fout
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
+            
+            return jsonify({
+                'error': f'Fout bij valideren bestand: {str(e)}',
+                'success': False
+            }), 500
+        
+    except Exception as e:
+        return jsonify({
+            'error': f'Fout bij validatie: {str(e)}',
+            'success': False
+        }), 500
 
 @app.errorhandler(413)
 def too_large(e):
@@ -226,7 +365,10 @@ if __name__ == '__main__':
     print("🌐 Server draait op: http://localhost:5010")
     print("📁 Upload endpoint: POST /upload")
     print("📈 Scores endpoint: GET /get_scores/<person_name>")
+    print("🔍 Details endpoint: GET /get_person_details/<person_name>")
+    print("✅ Validatie endpoint: POST /validate")
     print("ℹ️  Status endpoint: GET /status")
+    print("📋 Ondersteunde formaten: .xlsx, .xls")
     print("-" * 50)
     
     app.run(host='0.0.0.0', port=5010, debug=True)
