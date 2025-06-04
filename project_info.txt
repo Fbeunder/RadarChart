@@ -13,6 +13,7 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
 - Objectieve vergelijking tussen individuele prestaties en teamgemiddelden
 - Identificatie van ontwikkelgebieden en sterktes per competentie
 - Ondersteuning bij ontwikkelgesprekken en persoonlijke groeiplannen
+- Export mogelijkheden voor rapporten en presentaties
 
 **Belangrijke aandachtspunten:**
 - Applicatie moet lokaal draaien (privacy-gevoelige data)
@@ -50,32 +51,35 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Competency categorization met regex patterns
 
 #### Frontend (HTML/CSS/JavaScript)
-1. **templates/index.html** - Hoofdpagina ✅ VOLTOOID v3.0
+1. **templates/index.html** - Hoofdpagina ✅ VOLTOOID v4.0
    - Moderne upload interface met drag & drop functionaliteit
    - Personen selectie dropdown na succesvolle upload
    - Resultaten sectie voor feedback visualisatie
+   - **NIEUW**: Export controls sectie met PNG/SVG opties
    - Inklapbare API documentatie sectie
    - Responsive design voor verschillende schermgroottes
    - Nederlandse teksten voor HR-professionals
    - D3.js v7 CDN integratie voor radar chart visualisatie
    - Progress indicators en status feedback
 
-2. **static/css/style.css** - Styling ✅ VOLTOOID
+2. **static/css/style.css** - Styling ✅ VOLTOOID v2.0
    - Moderne, professionele interface styling
    - Gradient achtergronden en schaduwen
    - Hover effecten en animaties
    - Drag & drop visuele feedback
    - Progress bar voor upload status
+   - **NIEUW**: Export controls styling met groene knoppen en status feedback
    - Responsive design voor mobiele apparaten
    - Consistente kleurenschema (primair: #3498db, succes: #27ae60, fout: #e74c3c)
 
-3. **static/js/main.js** - Frontend logica ✅ VOLTOOID v2.0
+3. **static/js/main.js** - Frontend logica ✅ VOLTOOID v3.0
    - Drag & drop upload handling
    - Bestandsvalidatie (type en grootte)
    - API communicatie met backend (/upload, /get_scores)
    - Upload progress en status feedback
    - Personen dropdown populatie
    - Radar chart integratie met D3.js component
+   - **NIEUW**: Export functionaliteit integratie
    - Responsive chart rendering met window resize handling
    - Error handling en gebruikersfeedback
    - Fallback naar basis score weergave bij chart fouten
@@ -95,6 +99,25 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Area highlighting bij mouse hover
    - Text wrapping voor lange competentie namen
 
+5. **static/js/exportChart.js** - Export functionaliteit ✅ NIEUW VOLTOOID
+   - **PNG Export**: Canvas-gebaseerde conversie van SVG naar PNG
+   - **SVG Export**: Directe SVG download met inline styling
+   - **Bestandsnamen**: Automatische generatie met persoonsnaam en timestamp
+   - **Styling Behoud**: Computed styles worden geconverteerd naar inline styles
+   - **Error Handling**: Uitgebreide foutafhandeling en gebruikersfeedback
+   - **Browser Compatibiliteit**: Fallback voor browsers zonder Canvas support
+   - **Status Feedback**: Visuele feedback tijdens export proces
+   - **Achtergrond**: Witte achtergrond voor professionele uitstraling
+
+### Export Functionaliteiten
+- **PNG Export**: High-quality raster afbeeldingen voor rapporten en presentaties
+- **SVG Export**: Vector graphics voor schaalbare afbeeldingen
+- **Automatische Bestandsnamen**: `feedback_radar_chart_[persoon]_[datum]_[tijd].[extensie]`
+- **Styling Preservatie**: Alle chart styling wordt behouden in export
+- **Witte Achtergrond**: Professionele uitstraling voor documenten
+- **Error Handling**: Duidelijke feedback bij export problemen
+- **Browser Support**: Werkt in alle moderne browsers
+
 ### Radar Chart Functionaliteiten
 - **Visualisatie**: Multi-dimensionale competentie data in één overzicht
 - **Vergelijking**: Individuele scores vs team gemiddelden overlay
@@ -103,6 +126,7 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
   - Klikbare legenda om datasets te tonen/verbergen
   - Area highlight bij hover
   - Glow effects voor visuele appeal
+- **Export**: Download als PNG of SVG voor externe gebruik
 - **Responsive**: Past zich automatisch aan aan schermgrootte
 - **Toegankelijkheid**: Duidelijke kleuren en labels
 - **Performance**: Efficiënte rendering en cleanup
@@ -133,20 +157,22 @@ Competenties worden automatisch gedetecteerd uit de Excel kolomnamen. Typische c
 - Mappenstructuur: ✅ Voltooid (templates/, static/css/, static/js/ aangemaakt)
 - .gitignore: ✅ Voltooid (Python en project-specifieke exclusions)
 - app.py: ✅ Voltooid v2.1 (Flask backend core met alle routes en data_processor integratie + bug fix)
-- templates/index.html: ✅ Voltooid v3.0 (D3.js v7 CDN integratie, radar chart ready)
+- templates/index.html: ✅ Voltooid v4.0 (Export controls toegevoegd)
 - data_processor.py: ✅ Voltooid v2.0 (Wide format support, tekst score mapping, KLANTGERICHTHEID combinatie)
 - Test bestanden: ✅ Toegevoegd (test_input_data.py, verify_data_processing.py, test_sample_data.csv)
-- static/css/style.css: ✅ Voltooid (Moderne interface styling)
-- static/js/main.js: ✅ Voltooid v2.0 (Radar chart integratie, responsive handling)
+- static/css/style.css: ✅ Voltooid v2.0 (Export controls styling toegevoegd)
+- static/js/main.js: ✅ Voltooid v3.0 (Export integratie toegevoegd)
 - static/js/radarChart.js: ✅ VOLTOOID (D3.js v7 interactieve radar chart visualisatie)
+- static/js/exportChart.js: ✅ NIEUW VOLTOOID (PNG/SVG export functionaliteit)
 
 ### Huidige Applicatie Status
-**Volledig Functioneel** - Alle must-have features zijn geïmplementeerd:
+**Volledig Functioneel met Export** - Alle must-have features zijn geïmplementeerd:
 - ✅ Excel upload en verwerking
 - ✅ Data processing en validatie  
 - ✅ Interactieve radar chart visualisatie
 - ✅ Personen selectie en analyse
 - ✅ Team vergelijking functionaliteit
+- ✅ **NIEUW**: PNG en SVG export functionaliteit
 - ✅ Responsive design
 - ✅ Error handling en gebruikersfeedback
 - ✅ Bug fix: Data structuur mismatch opgelost
@@ -154,4 +180,4 @@ Competenties worden automatisch gedetecteerd uit de Excel kolomnamen. Typische c
 **Volgende Stappen** (nice-to-have):
 - Testing & optimalisatie
 - Uitgebreide documentatie met screenshots
-- Extra features (export, multi-persoon vergelijking)
+- Extra features (multi-persoon vergelijking, historische data)
