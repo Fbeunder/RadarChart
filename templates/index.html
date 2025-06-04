@@ -4,61 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RadarChart - Feedback Analyse & Visualisatie</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .description {
-            background-color: #e8f4f8;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 30px;
-            border-left: 4px solid #3498db;
-        }
-        .api-info {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .endpoint {
-            background-color: #2c3e50;
-            color: white;
-            padding: 10px;
-            border-radius: 3px;
-            font-family: monospace;
-            margin: 10px 0;
-        }
-        .status {
-            text-align: center;
-            color: #27ae60;
-            font-weight: bold;
-            margin-top: 30px;
-        }
-        ul {
-            line-height: 1.6;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
         <h1>🎯 RadarChart</h1>
-        <h2 style="text-align: center; color: #7f8c8d; margin-top: -10px;">Feedback Analyse & Visualisatie Applicatie</h2>
+        <h2 class="subtitle">Feedback Analyse & Visualisatie Applicatie</h2>
         
         <div class="description">
             <h3>📋 Over deze applicatie</h3>
@@ -73,29 +24,57 @@
             </ul>
         </div>
 
-        <div class="api-info">
-            <h3>🔧 API Endpoints</h3>
-            <p>De backend server draait op poort 5010 en biedt de volgende endpoints:</p>
+        <!-- Upload Sectie -->
+        <div class="upload-section">
+            <h3>📤 Upload Feedback Bestand</h3>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📊</div>
+                <p>Sleep hier uw Excel of CSV bestand naartoe</p>
+                <p class="upload-hint">of klik om een bestand te selecteren</p>
+                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+            </div>
             
-            <div class="endpoint">GET / - Deze homepage</div>
-            <div class="endpoint">POST /upload - Upload Excel bestand voor verwerking</div>
-            <div class="endpoint">GET /get_scores/&lt;person_name&gt; - Haal scores op voor specifieke persoon</div>
-            <div class="endpoint">GET /status - Server status en beschikbare data</div>
+            <div class="upload-status" id="uploadStatus" style="display: none;">
+                <div class="status-message"></div>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
         </div>
 
-        <div class="api-info">
-            <h3>🚀 Aan de slag</h3>
-            <ol>
-                <li>Zorg dat uw Excel bestand de juiste structuur heeft (zie documentatie)</li>
-                <li>Upload het bestand via de <code>/upload</code> endpoint</li>
-                <li>Gebruik de <code>/get_scores/&lt;naam&gt;</code> endpoint om individuele scores op te halen</li>
-                <li>De frontend (in ontwikkeling) zal deze data visualiseren in radar charts</li>
-            </ol>
+        <!-- Personen Selectie -->
+        <div class="person-selection" id="personSelection" style="display: none;">
+            <h3>👤 Selecteer Persoon</h3>
+            <select id="personDropdown">
+                <option value="">Kies een persoon...</option>
+            </select>
+            <button id="analyzeButton">Analyseer Feedback</button>
+        </div>
+
+        <!-- Resultaten Sectie -->
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <h3>📊 Feedback Analyse</h3>
+            <div id="radarChartContainer"></div>
+        </div>
+
+        <!-- API Info (voor ontwikkelaars) -->
+        <div class="api-info collapsible">
+            <h3>🔧 API Endpoints <span class="toggle-icon">▼</span></h3>
+            <div class="api-content">
+                <p>De backend server draait op poort 5010 en biedt de volgende endpoints:</p>
+                
+                <div class="endpoint">GET / - Deze homepage</div>
+                <div class="endpoint">POST /upload - Upload Excel bestand voor verwerking</div>
+                <div class="endpoint">GET /get_scores/&lt;person_name&gt; - Haal scores op voor specifieke persoon</div>
+                <div class="endpoint">GET /status - Server status en beschikbare data</div>
+            </div>
         </div>
 
         <div class="status">
             ✅ Backend Server Actief - Poort 5010
         </div>
     </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
