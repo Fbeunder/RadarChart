@@ -128,11 +128,12 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             if (data.success) {
-                showStatus('success', `✅ Upload succesvol! ${data.people_count} personen gevonden.`);
+                // FIX: Gebruik data.persons.length in plaats van data.people_count
+                showStatus('success', `✅ Upload succesvol! ${data.persons.length} personen gevonden.`);
                 showProgress(100);
                 
-                // Vul personen dropdown
-                populatePersonDropdown(data.people);
+                // FIX: Gebruik data.persons in plaats van data.people
+                populatePersonDropdown(data.persons);
                 
                 // Toon personen selectie
                 setTimeout(() => {
