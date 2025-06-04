@@ -7,20 +7,23 @@
 4. **Data Check & Update v2**: Data processor aangepast voor wide format, tekstuele scores, KLANTGERICHTHEID combinatie
 5. **Frontend Basis Interface**: Moderne upload interface met drag & drop, personen selectie, styling en JavaScript interactie
 6. **D3.js Radar Chart Visualisatie**: Interactieve radar chart met D3.js v7, dual-dataset support, tooltips, legenda, responsive design
+7. **Create All Batch Export**: Implementatie van 'Create All' button voor batch export van alle radar charts als GIF bestanden
 
-### Stap 7: Testing & Optimalisatie (nice-to-have)
+### Stap 8: Testing & Optimalisatie (nice-to-have)
 **Omschrijving:** Uitgebreide tests met verschillende datasets en performance optimalisatie
 **Doel:** Verzekeren dat de applicatie betrouwbaar werkt met verschillende soorten input en snel blijft bij grote datasets.
 **Bestanden:**
 - test_data/ map met verschillende test Excel bestanden
 - Performance optimalisaties in data_processor.py
 - Unit tests voor kritieke functies
+- Tests voor batch export functionaliteit
 **Acceptatiecriteria:**
 - Geautomatiseerde tests voor verschillende Excel formaten
 - Performance benchmarks voor grote datasets
 - Error handling tests voor edge cases
+- Batch export tests met verschillende export locaties
 
-### Stap 8: Uitgebreide Documentatie (nice-to-have)
+### Stap 9: Uitgebreide Documentatie (nice-to-have)
 **Omschrijving:** Gedetailleerde gebruikersdocumentatie en code documentatie
 **Doel:** De applicatie toegankelijk maken voor nieuwe gebruikers en ontwikkelaars die het project willen uitbreiden of onderhouden.
 **Bestanden:**
@@ -28,22 +31,26 @@
 - CONTRIBUTING.md - Richtlijnen voor bijdragen
 - API documentatie in Swagger/OpenAPI formaat
 - Gebruikershandleiding met voorbeelden
+- Documentatie voor batch export functionaliteit
 **Acceptatiecriteria:**
 - Stap-voor-stap screenshots van het upload proces
-- Video demonstratie van de applicatie
+- Video demonstratie van de applicatie inclusief batch export
 - Technische API documentatie
 - Troubleshooting sectie
+- Handleiding voor Create All functionaliteit
 
-### Stap 9: Extra Features (nice-to-have)
-**Omschrijving:** Toevoegen van export functionaliteit, meerdere personen vergelijken, historische data
+### Stap 10: Extra Features (nice-to-have)
+**Omschrijving:** Toevoegen van extra export functionaliteit, meerdere personen vergelijken, historische data
 **Doel:** De applicatie uitbreiden met features die het nog waardevoller maken voor HR-professionals bij het analyseren van feedbacktrends over tijd.
 **Features:**
-- Export radar chart als PNG/PDF
+- Export radar chart als PNG/PDF (individueel)
 - Vergelijk meerdere personen in één chart
 - Historische trend analyse
 - Competentie drill-down met sub-scores
 - Batch processing voor meerdere bestanden
+- Export naar PowerPoint presentatie
 **Acceptatiecriteria:**
 - Export functionaliteit werkt in alle browsers
 - Multi-persoon vergelijking is overzichtelijk
 - Historische data kan worden geïmporteerd en gevisualiseerd
+- PowerPoint export met alle charts in één presentatie
