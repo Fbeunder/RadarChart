@@ -24,10 +24,13 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
 ### Architectuur/Modulestructuur
 
 #### Backend (Python/Flask)
-1. **app.py** - Hoofdapplicatie
+1. **app.py** - Hoofdapplicatie ✅ VOLTOOID
    - Flask server configuratie (poort 5010)
-   - Routes: /, /upload, /get_scores/<person_name>
+   - Routes: /, /upload, /get_scores/<person_name>, /status
    - In-memory data opslag voor verwerkte resultaten
+   - CORS headers voor lokaal gebruik
+   - Error handling voor verschillende scenario's
+   - Mock data voor ontwikkeling en testing
 
 2. **data_processor.py** - Dataverwerking module
    - Excel inlezen met pandas/openpyxl
@@ -36,10 +39,11 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Berekening individuele en team gemiddelden
 
 #### Frontend (HTML/CSS/JavaScript)
-1. **templates/index.html** - Hoofdpagina
-   - File upload interface
-   - Persoon selectie dropdown
-   - Container voor radar chart
+1. **templates/index.html** - Hoofdpagina ✅ VOLTOOID
+   - Basis homepage met applicatie informatie
+   - API endpoint documentatie
+   - Styling voor professionele uitstraling
+   - Placeholder voor toekomstige upload interface
 
 2. **static/js/script.js** - Frontend logica
    - File upload handling
@@ -67,9 +71,9 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
 - README.md: ✅ Voltooid (Uitgebreide documentatie met installatie en gebruik instructies)
 - Mappenstructuur: ✅ Voltooid (templates/, static/css/, static/js/ aangemaakt)
 - .gitignore: ✅ Voltooid (Python en project-specifieke exclusions)
-- app.py: Nog te maken
+- app.py: ✅ Voltooid (Flask backend core met alle routes en functionaliteit)
+- templates/index.html: ✅ Voltooid (Basis homepage met API documentatie)
 - data_processor.py: Nog te maken
-- templates/index.html: Nog te maken
 - static/js/script.js: Nog te maken
 - static/js/radarChart.js: Nog te maken
 - static/css/style.css: Nog te maken
