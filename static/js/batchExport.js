@@ -35,6 +35,8 @@ class BatchExporter {
         this.completedExports = [];
         this.failedExports = [];
         this.exportedFiles = [];
+
+        const zip = new JSZip();
         
         const batchBtn = document.getElementById('batchExportBtn');
         batchBtn.disabled = true;
@@ -86,10 +88,14 @@ class BatchExporter {
                 await this.delay(100);
             }
             
-            // Start batch download van alle bestanden
+            // Voeg alle bestanden toe aan ZIP-archief en download één bestand
             if (this.exportedFiles.length > 0) {
-                this.showBatchStatus('processing', '📦 Voorbereiden van batch download...');
-                await this.downloadAllFiles();
+                this.showBatchStatus('processing', '📦 Archiveren van downloads...');
+                for (const file of this.exportedFiles) {
+                    zip.file(file.filename, file.blob);
+                }
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                this.downloadBlob(zipBlob, this.generateZipFileName(exportDate));
             }
             
             this.showCompletionStatus();
@@ -228,19 +234,6 @@ class BatchExporter {
         });
     }
 
-    async downloadAllFiles() {
-        // Download alle bestanden in één batch met korte delays
-        for (let i = 0; i < this.exportedFiles.length; i++) {
-            const file = this.exportedFiles[i];
-            this.downloadBlob(file.blob, file.filename);
-            
-            // Korte delay tussen downloads om browser niet te overbelasten
-            if (i < this.exportedFiles.length - 1) {
-                await this.delay(200);
-            }
-        }
-    }
-
     downloadBlob(blob, filename) {
         // Create download link
         const url = URL.createObjectURL(blob);
@@ -265,8 +258,12 @@ class BatchExporter {
             .replace(/[^a-z0-9]/g, '_')
             .replace(/_+/g, '_')
             .replace(/^_|_$/g, '');
-        
+
         return `${exportDate}_${cleanName}.png`;
+    }
+
+    generateZipFileName(exportDate) {
+        return `radarcharts_${exportDate}.zip`;
     }
 
     updateProgressBar(current, total) {
