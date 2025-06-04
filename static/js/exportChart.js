@@ -68,7 +68,7 @@ class ChartExporter {
             // Clone SVG to avoid modifying the original
             const svgClone = svgElement.cloneNode(true);
             
-            // Add inline styles for proper export
+            // Add inline styles for proper export with color preservation
             this.addInlineStyles(svgClone);
             
             // Generate filename
@@ -90,40 +90,147 @@ class ChartExporter {
         // Add white background
         svgElement.style.backgroundColor = 'white';
         
-        // Get computed styles and apply them inline
+        // Get all elements and apply computed styles inline
         const allElements = svgElement.querySelectorAll('*');
         
         allElements.forEach(element => {
             const computedStyle = window.getComputedStyle(element);
             
-            // Apply important styling properties
+            // Apply styling based on element type and class
             if (element.tagName === 'text') {
+                // Preserve text styling
                 element.style.fontFamily = computedStyle.fontFamily || 'Arial, sans-serif';
                 element.style.fontSize = computedStyle.fontSize || '12px';
+                element.style.fontWeight = computedStyle.fontWeight || 'normal';
                 element.style.fill = computedStyle.fill || '#333';
                 element.style.textAnchor = element.getAttribute('text-anchor') || 'middle';
+                element.style.dominantBaseline = element.getAttribute('dominant-baseline') || 'auto';
             }
             
             if (element.tagName === 'path') {
-                element.style.fill = computedStyle.fill || 'none';
-                element.style.stroke = computedStyle.stroke || '#333';
-                element.style.strokeWidth = computedStyle.strokeWidth || '1px';
-                element.style.fillOpacity = computedStyle.fillOpacity || '1';
-                element.style.strokeOpacity = computedStyle.strokeOpacity || '1';
+                // Preserve path styling - especially important for radar areas and strokes
+                const fill = computedStyle.fill;
+                const stroke = computedStyle.stroke;
+                const fillOpacity = computedStyle.fillOpacity;
+                const strokeOpacity = computedStyle.strokeOpacity;
+                const strokeWidth = computedStyle.strokeWidth;
+                
+                // Only set if not 'none' or has actual values
+                if (fill && fill !== 'none' && fill !== 'rgba(0, 0, 0, 0)') {
+                    element.style.fill = fill;
+                }
+                if (stroke && stroke !== 'none' && stroke !== 'rgba(0, 0, 0, 0)') {
+                    element.style.stroke = stroke;
+                }
+                if (fillOpacity && fillOpacity !== '1') {
+                    element.style.fillOpacity = fillOpacity;
+                }
+                if (strokeOpacity && strokeOpacity !== '1') {
+                    element.style.strokeOpacity = strokeOpacity;
+                }
+                if (strokeWidth && strokeWidth !== '0px') {
+                    element.style.strokeWidth = strokeWidth;
+                }
+                
+                // Preserve class-based styling for radar areas
+                if (element.classList.contains('radarArea')) {
+                    // Ensure radar area colors are preserved
+                    if (!element.style.fill || element.style.fill === 'none') {
+                        element.style.fill = fill || '#3498db';
+                    }
+                    if (!element.style.fillOpacity) {
+                        element.style.fillOpacity = fillOpacity || '0.35';
+                    }
+                }
+                
+                if (element.classList.contains('radarStroke')) {
+                    // Ensure radar stroke colors are preserved
+                    if (!element.style.stroke || element.style.stroke === 'none') {
+                        element.style.stroke = stroke || '#3498db';
+                    }
+                    if (!element.style.strokeWidth) {
+                        element.style.strokeWidth = strokeWidth || '2px';
+                    }
+                    element.style.fill = 'none';
+                }
             }
             
             if (element.tagName === 'circle') {
-                element.style.fill = computedStyle.fill || '#333';
-                element.style.stroke = computedStyle.stroke || 'none';
-                element.style.strokeWidth = computedStyle.strokeWidth || '0px';
+                // Preserve circle styling - important for radar dots and grid circles
+                const fill = computedStyle.fill;
+                const stroke = computedStyle.stroke;
+                const fillOpacity = computedStyle.fillOpacity;
+                const strokeWidth = computedStyle.strokeWidth;
+                
+                if (fill && fill !== 'none' && fill !== 'rgba(0, 0, 0, 0)') {
+                    element.style.fill = fill;
+                }
+                if (stroke && stroke !== 'none' && stroke !== 'rgba(0, 0, 0, 0)') {
+                    element.style.stroke = stroke;
+                }
+                if (fillOpacity && fillOpacity !== '1') {
+                    element.style.fillOpacity = fillOpacity;
+                }
+                if (strokeWidth && strokeWidth !== '0px') {
+                    element.style.strokeWidth = strokeWidth;
+                }
+                
+                // Special handling for radar circles (dots)
+                if (element.classList.contains('radarCircle')) {
+                    if (!element.style.fill || element.style.fill === 'none') {
+                        element.style.fill = fill || '#3498db';
+                    }
+                    if (!element.style.fillOpacity) {
+                        element.style.fillOpacity = fillOpacity || '0.8';
+                    }
+                }
+                
+                // Special handling for grid circles
+                if (element.classList.contains('gridCircle')) {
+                    element.style.fill = '#CDCDCD';
+                    element.style.stroke = '#CDCDCD';
+                    element.style.fillOpacity = '0.1';
+                }
             }
             
             if (element.tagName === 'line') {
-                element.style.stroke = computedStyle.stroke || '#333';
-                element.style.strokeWidth = computedStyle.strokeWidth || '1px';
-                element.style.strokeOpacity = computedStyle.strokeOpacity || '1';
+                // Preserve line styling
+                const stroke = computedStyle.stroke;
+                const strokeWidth = computedStyle.strokeWidth;
+                const strokeOpacity = computedStyle.strokeOpacity;
+                
+                if (stroke && stroke !== 'none' && stroke !== 'rgba(0, 0, 0, 0)') {
+                    element.style.stroke = stroke;
+                }
+                if (strokeWidth && strokeWidth !== '0px') {
+                    element.style.strokeWidth = strokeWidth;
+                }
+                if (strokeOpacity && strokeOpacity !== '1') {
+                    element.style.strokeOpacity = strokeOpacity;
+                }
+                
+                // Special handling for axis lines
+                if (element.classList.contains('line')) {
+                    element.style.stroke = 'white';
+                    element.style.strokeWidth = '2px';
+                }
             }
         });
+        
+        // Ensure proper namespace and attributes for SVG export
+        svgElement.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        svgElement.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+        
+        // Add CSS styles directly to SVG for better compatibility
+        const styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+        styleElement.textContent = `
+            .radar { font-family: Arial, sans-serif; }
+            .axisLabel { font-size: 10px; fill: #737373; }
+            .legend { font-size: 12px; font-weight: 500; fill: #2c3e50; text-anchor: middle; }
+            .gridCircle { fill: #CDCDCD; stroke: #CDCDCD; fill-opacity: 0.1; }
+            .line { stroke: white; stroke-width: 2px; }
+        `;
+        svgElement.insertBefore(styleElement, svgElement.firstChild);
     }
 
     async downloadSVG(svgElement, filename) {
