@@ -23,6 +23,7 @@
                 <li><strong>Radar Visualisatie:</strong> Interactieve radar charts voor competentie-analyse</li>
                 <li><strong>Team Vergelijking:</strong> Vergelijk individuele scores met teamgemiddelden</li>
                 <li><strong>Export Functionaliteit:</strong> Download charts als PNG of SVG afbeeldingen</li>
+                <li><strong>Batch Export:</strong> Exporteer alle personen in één keer voor efficiënte rapportage</li>
                 <li><strong>Privacy First:</strong> Alle data blijft lokaal op uw computer</li>
             </ul>
         </div>
@@ -43,6 +44,25 @@
                     <div class="progress-fill"></div>
                 </div>
             </div>
+        </div>
+
+        <!-- Batch Export Controls -->
+        <div id="batchExportControls" class="batch-export-controls" style="display: none;">
+            <h4>📦 Batch Export</h4>
+            <p class="batch-info">Exporteer radar charts voor alle <span id="totalPersonsCount">0</span> personen in één keer</p>
+            <button id="batchExportBtn" class="batch-export-btn">
+                <span class="btn-icon">📥</span>
+                Exporteer Alle Personen als PNG
+            </button>
+            <div id="batchExportProgress" class="batch-progress" style="display: none;">
+                <div class="batch-progress-bar">
+                    <div class="batch-progress-fill"></div>
+                </div>
+                <div class="batch-progress-text">
+                    <span id="batchProgressCurrent">0</span> / <span id="batchProgressTotal">0</span> voltooid
+                </div>
+            </div>
+            <div id="batchExportStatus" class="batch-status" style="display: none;"></div>
         </div>
 
         <!-- Personen Selectie -->
@@ -84,6 +104,7 @@
                 <div class="endpoint">GET / - Deze homepage</div>
                 <div class="endpoint">POST /upload - Upload Excel bestand voor verwerking</div>
                 <div class="endpoint">GET /get_scores/&lt;person_name&gt; - Haal scores op voor specifieke persoon</div>
+                <div class="endpoint">GET /get_all_persons_data - Haal data voor alle personen op (batch export)</div>
                 <div class="endpoint">GET /status - Server status en beschikbare data</div>
             </div>
         </div>
@@ -95,6 +116,7 @@
 
     <script src="{{ url_for('static', filename='js/radarChart.js') }}"></script>
     <script src="{{ url_for('static', filename='js/exportChart.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/batchExport.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
