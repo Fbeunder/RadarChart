@@ -46,13 +46,14 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Uitgebreide error handling en validatie
 
 #### Frontend (HTML/CSS/JavaScript)
-1. **templates/index.html** - Hoofdpagina ✅ VOLTOOID v2.0
+1. **templates/index.html** - Hoofdpagina ✅ VOLTOOID v3.0
    - Moderne upload interface met drag & drop functionaliteit
    - Personen selectie dropdown na succesvolle upload
    - Resultaten sectie voor feedback visualisatie
    - Inklapbare API documentatie sectie
    - Responsive design voor verschillende schermgroottes
    - Nederlandse teksten voor HR-professionals
+   - D3.js v7 CDN integratie voor radar chart visualisatie
 
 2. **static/css/style.css** - Styling ✅ VOLTOOID
    - Moderne, professionele interface styling
@@ -63,18 +64,39 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Responsive design voor mobiele apparaten
    - Consistente kleurenschema (primair: #3498db, succes: #27ae60, fout: #e74c3c)
 
-3. **static/js/main.js** - Frontend logica ✅ VOLTOOID
+3. **static/js/main.js** - Frontend logica ✅ VOLTOOID v2.0
    - Drag & drop upload handling
    - Bestandsvalidatie (type en grootte)
    - API communicatie met backend (/upload, /get_scores)
    - Upload progress en status feedback
    - Personen dropdown populatie
-   - Basis scores weergave (voorlopig zonder radar chart)
+   - Radar chart integratie met D3.js component
+   - Responsive chart rendering
    - Error handling en gebruikersfeedback
+   - Fallback naar basis score weergave bij chart fouten
 
-4. **static/js/radarChart.js** - D3.js visualisatie
-   - Radar chart implementatie (nog te maken)
-   - Dual dataset support (individueel vs team)
+4. **static/js/radarChart.js** - D3.js visualisatie ✅ VOLTOOID
+   - Interactieve radar chart implementatie gebaseerd op D3.js v7
+   - Dual dataset support (individueel vs team gemiddelden)
+   - Configureerbare kleuren: blauw (#3498db) voor individueel, groen (#27ae60) voor team
+   - Schaal 0-5 voor feedback scores
+   - Interactieve tooltips met exacte scores bij hover
+   - Klikbare legenda voor dataset toggle functionaliteit
+   - Responsive design die zich aanpast aan container grootte
+   - Smooth animaties en hover effecten
+   - Data transformatie functies voor backend integratie
+   - Cleanup functionaliteit voor chart instances
+
+### Radar Chart Functionaliteiten
+- **Visualisatie**: Multi-dimensionale competentie data in één overzicht
+- **Vergelijking**: Individuele scores vs team gemiddelden overlay
+- **Interactiviteit**: 
+  - Hover tooltips met exacte scores
+  - Klikbare legenda om datasets te tonen/verbergen
+  - Area highlight bij hover
+- **Responsive**: Past zich automatisch aan aan schermgrootte
+- **Toegankelijkheid**: Duidelijke kleuren en labels
+- **Performance**: Efficiënte rendering en cleanup
 
 ### Ondersteunde Data Formaten
 Het systeem ondersteunt nu twee Excel/CSV structuren:
@@ -105,9 +127,9 @@ Competenties worden automatisch gedetecteerd uit de Excel kolomnamen. Typische c
 - Mappenstructuur: ✅ Voltooid (templates/, static/css/, static/js/ aangemaakt)
 - .gitignore: ✅ Voltooid (Python en project-specifieke exclusions)
 - app.py: ✅ Voltooid (Flask backend core met alle routes en data_processor integratie)
-- templates/index.html: ✅ Voltooid v2.0 (Upload interface met personen selectie)
+- templates/index.html: ✅ Voltooid v3.0 (D3.js v7 CDN integratie, radar chart ready)
 - data_processor.py: ✅ Voltooid v2.0 (Wide format support, tekst score mapping, KLANTGERICHTHEID combinatie)
 - Test bestanden: ✅ Toegevoegd (test_input_data.py, verify_data_processing.py, test_sample_data.csv)
 - static/css/style.css: ✅ Voltooid (Moderne interface styling)
-- static/js/main.js: ✅ Voltooid (Upload functionaliteit en basis interactie)
-- static/js/radarChart.js: Nog te maken (D3.js radar chart visualisatie)
+- static/js/main.js: ✅ Voltooid v2.0 (Radar chart integratie, responsive handling)
+- static/js/radarChart.js: ✅ VOLTOOID (D3.js v7 interactieve radar chart visualisatie)
