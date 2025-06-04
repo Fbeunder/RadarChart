@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultsSection = document.getElementById('resultsSection');
     const radarChartContainer = document.getElementById('radarChartContainer');
 
+    // Variabele om huidige chart instance bij te houden
+    let currentChart = null;
+
     // API Info inklapbaar maken
     const apiInfo = document.querySelector('.api-info.collapsible');
     if (apiInfo) {
@@ -38,6 +41,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Analyze button event listener
     analyzeButton.addEventListener('click', handleAnalyze);
+
+    // Window resize handler voor responsive chart
+    window.addEventListener('resize', function() {
+        if (currentChart && personDropdown.value) {
+            // Debounce resize events
+            clearTimeout(window.resizeTimeout);
+            window.resizeTimeout = setTimeout(() => {
+                handleAnalyze(); // Re-render chart met nieuwe afmetingen
+            }, 250);
+        }
+    });
 
     // Drag & Drop handlers
     function handleDragOver(e) {
@@ -195,39 +209,129 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function displayRadarChart(scores, personName) {
-        // Voor nu een eenvoudige weergave van de scores
-        // Later wordt dit vervangen door een echte radar chart
-        let html = `
-            <div style="text-align: center;">
-                <h4>Feedback Scores voor ${personName}</h4>
-                <div style="text-align: left; max-width: 500px; margin: 0 auto;">
-        `;
+        try {
+            // Cleanup vorige chart
+            if (currentChart) {
+                currentChart.destroy();
+                currentChart = null;
+            }
 
-        // Toon scores
-        Object.entries(scores).forEach(([category, score]) => {
-            const percentage = Math.round(score * 20); // Converteer 1-5 naar 0-100%
-            html += `
-                <div style="margin-bottom: 15px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span><strong>${category}:</strong></span>
-                        <span>${score.toFixed(1)}/5.0</span>
+            // Leeg container
+            radarChartContainer.innerHTML = '';
+
+            // Controleer of D3 beschikbaar is
+            if (typeof d3 === 'undefined') {
+                throw new Error('D3.js is niet geladen. Controleer de internetverbinding.');
+            }
+
+            // Controleer of radarChart functie beschikbaar is
+            if (typeof initializeRadarChart === 'undefined') {
+                throw new Error('Radar chart component is niet geladen.');
+            }
+
+            // Bereken responsive afmetingen
+            const containerWidth = radarChartContainer.offsetWidth || 600;
+            const maxWidth = Math.min(containerWidth * 0.9, 600);
+            const chartSize = Math.min(maxWidth, window.innerHeight * 0.6);
+
+            // Voeg titel toe
+            const titleDiv = document.createElement('div');
+            titleDiv.style.textAlign = 'center';
+            titleDiv.style.marginBottom = '20px';
+            titleDiv.innerHTML = `<h4 style="margin: 0; color: #2c3e50;">🎯 Feedback Analyse voor ${personName}</h4>`;
+            radarChartContainer.appendChild(titleDiv);
+
+            // Maak chart container
+            const chartDiv = document.createElement('div');
+            chartDiv.id = 'radar-chart-svg';
+            chartDiv.style.textAlign = 'center';
+            radarChartContainer.appendChild(chartDiv);
+
+            // Configuratie voor radar chart
+            const chartOptions = {
+                w: chartSize,
+                h: chartSize,
+                margin: { top: 50, right: 80, bottom: 50, left: 80 },
+                levels: 5,
+                maxValue: 5,
+                labelFactor: 1.25,
+                wrapWidth: 60,
+                opacityArea: 0.35,
+                dotRadius: 4,
+                strokeWidth: 2,
+                roundStrokes: false,
+                color: d3.scaleOrdinal()
+                    .domain([0, 1])
+                    .range(["#3498db", "#27ae60"]) // Blauw voor individueel, groen voor team
+            };
+
+            // Controleer data structuur en maak team gemiddelden als ze ontbreken
+            let scoresData = scores;
+            if (!scores.team_averages) {
+                console.warn('Geen team gemiddelden beschikbaar, gebruik individuele scores als referentie');
+                scoresData = {
+                    individual_scores: scores,
+                    team_averages: scores // Gebruik individuele scores als fallback
+                };
+            }
+
+            // Initialiseer radar chart
+            currentChart = initializeRadarChart('#radar-chart-svg', scoresData, personName, chartOptions);
+
+            // Voeg instructies toe
+            const instructionsDiv = document.createElement('div');
+            instructionsDiv.style.textAlign = 'center';
+            instructionsDiv.style.marginTop = '20px';
+            instructionsDiv.style.color = '#7f8c8d';
+            instructionsDiv.style.fontSize = '14px';
+            instructionsDiv.innerHTML = `
+                <p><strong>💡 Instructies:</strong></p>
+                <p>• Hover over de punten voor exacte scores</p>
+                <p>• Klik op de legenda om datasets te tonen/verbergen</p>
+                <p>• Hover over de areas voor highlight effect</p>
+            `;
+            radarChartContainer.appendChild(instructionsDiv);
+
+            console.log('Radar chart succesvol geladen voor:', personName);
+
+        } catch (error) {
+            console.error('Radar chart error:', error);
+            
+            // Fallback naar basis weergave
+            radarChartContainer.innerHTML = `
+                <div style="text-align: center;">
+                    <h4>📊 Feedback Scores voor ${personName}</h4>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <p style="color: #e74c3c; margin-bottom: 15px;">
+                            ⚠️ Radar chart kon niet worden geladen: ${error.message}
+                        </p>
+                        <p style="color: #7f8c8d;">Basis score weergave:</p>
                     </div>
-                    <div style="background-color: #ecf0f1; height: 8px; border-radius: 4px; overflow: hidden;">
-                        <div style="background: linear-gradient(90deg, #3498db, #2980b9); height: 100%; width: ${percentage}%; transition: width 0.5s ease;"></div>
+                    <div style="text-align: left; max-width: 500px; margin: 0 auto;">
+            `;
+
+            // Toon basis scores als fallback
+            const scoresObj = scores.individual_scores || scores;
+            Object.entries(scoresObj).forEach(([category, score]) => {
+                const percentage = Math.round(score * 20); // Converteer 1-5 naar 0-100%
+                radarChartContainer.innerHTML += `
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span><strong>${category}:</strong></span>
+                            <span>${score.toFixed(1)}/5.0</span>
+                        </div>
+                        <div style="background-color: #ecf0f1; height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div style="background: linear-gradient(90deg, #3498db, #2980b9); height: 100%; width: ${percentage}%; transition: width 0.5s ease;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            radarChartContainer.innerHTML += `
                     </div>
                 </div>
             `;
-        });
-
-        html += `
-                </div>
-                <p style="margin-top: 20px; color: #7f8c8d; font-style: italic;">
-                    📊 Radar chart visualisatie wordt binnenkort toegevoegd
-                </p>
-            </div>
-        `;
-
-        radarChartContainer.innerHTML = html;
+        }
     }
 
     function showStatus(type, message) {
