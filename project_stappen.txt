@@ -1,12 +1,7 @@
 ## Project Stappen: Feedback Analyse & Visualisatie Applicatie
 
-### Stap 1: Project Setup & Requirements (must-have)
-**Omschrijving:** Basis projectstructuur opzetten met alle benodigde mappen en requirements
-**Doel:** Een werkende ontwikkelomgeving creëren met alle benodigde dependencies zodat het team direct kan beginnen met de implementatie. Dit zorgt voor een solide fundament waarop de applicatie gebouwd kan worden.
-**Bestanden:**
-- requirements.txt (nieuw) - Flask, pandas, openpyxl dependencies
-- README.md (nieuw) - Setup instructies en projectdocumentatie
-- Mappenstructuur aanmaken: templates/, static/css/, static/js/
+### ✅ Stap 1: Project Setup & Requirements (VOLTOOID)
+**Samenvatting:** Basis projectstructuur opgezet met requirements.txt (Flask 3.0.0, pandas 2.1.4, openpyxl 3.1.2, python-dotenv 1.0.0, Werkzeug 3.0.1), uitgebreide README.md documentatie, mappenstructuur (templates/, static/css/, static/js/) en .gitignore bestand.
 
 ### Stap 2: Backend Core - Flask Applicatie (must-have)
 **Omschrijving:** Implementeer de basis Flask applicatie met routes
