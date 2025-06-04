@@ -8,7 +8,7 @@ Een lokaal draaiende applicatie speciaal ontwikkeld voor HR-professionals om pri
 - **Radar Visualisatie:** Interactieve radar charts voor competentie-analyse  
 - **Team Vergelijking:** Vergelijk individuele scores met teamgemiddelden
 - **Export Functionaliteit:** Download charts als PNG of SVG afbeeldingen
-- **Batch Export:** Exporteer alle personen in één keer voor efficiënte rapportage
+- **Batch Export:** Exporteer alle personen in één ZIP-bestand voor efficiënte rapportage
 - **Privacy First:** Alle data blijft lokaal op uw computer
 
 ## 🚀 Nieuwe Batch Export Functionaliteit
@@ -30,7 +30,7 @@ Bijvoorbeeld: 2024-06-04_jan_de_vries.png
 - Teller: "X van Y voltooid"
 - Individuele foutrapportage
 - Eindstatus met samenvatting
-- Batch download van alle bestanden in één keer
+- Alle afbeeldingen worden geleverd in één ZIP-bestand
 - Dezelfde professionele opmaak als enkele exports
 
 ## 🛠️ Installatie & Gebruik
@@ -60,7 +60,7 @@ Bijvoorbeeld: 2024-06-04_jan_de_vries.png
 2. **Selecteer persoon** voor individuele analyse
 3. **Bekijk interactieve radar chart** met team vergelijking
 4. **Exporteer individueel** als PNG/SVG
-5. **Of gebruik batch export** voor alle personen tegelijk
+5. **Of gebruik batch export** voor alle personen tegelijk (ZIP download)
 
 ## 🔒 Privacy & Beveiliging
 
