@@ -21,7 +21,7 @@ function RadarChart(id, data, options) {
         roundStrokes: false,       // Ronde of rechte strokes
         color: d3.scaleOrdinal()   // Kleurenschema
             .domain([0, 1])
-            .range(["#3498db", "#27ae60"]), // Blauw voor individueel, groen voor team
+            .range(["#27ae60", "#3498db"]), // Blauw voor individueel, groen voor team
         ...options
     };
 
