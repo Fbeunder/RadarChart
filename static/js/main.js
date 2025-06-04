@@ -111,6 +111,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 showStatus('success', `✅ Upload succesvol! ${data.persons.length} personen gevonden.`);
                 showProgress(100);
                 populatePersonDropdown(data.persons);
+                
+                // Activate batch export functionality
+                if (window.batchExporter) {
+                    window.batchExporter.showBatchExportControls(data.persons.length);
+                }
+                
                 setTimeout(() => {
                     personSelection.style.display = 'block';
                     personSelection.scrollIntoView({ behavior: 'smooth' });
