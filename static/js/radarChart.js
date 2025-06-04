@@ -304,13 +304,13 @@ function transformDataForRadarChart(individualScores, teamAverages, personName) 
     }));
 
     return [
+        {            
+            name: "Team Gemiddelde",
+            axes: teamAxes
+        },
         {
             name: personName,
             axes: individualAxes
-        },
-        {
-            name: "Team Gemiddelde",
-            axes: teamAxes
         }
     ];
 }
