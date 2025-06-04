@@ -8,12 +8,13 @@ De applicatie is specifiek ontworpen voor privacy-gevoelige data en draait daaro
 
 ## Features
 
-- **Excel Upload**: Upload 360-graden feedback Excel bestanden
+- **Excel Upload**: Upload 360-graden feedback Excel bestanden (.xlsx, .xls)
 - **Automatische Dataverwerking**: Intelligente mapping van tekstuele antwoorden naar numerieke scores
 - **Competentie Analyse**: Analyse van 8 hoofdcompetentiegebieden
 - **Interactieve Radar Chart**: Visuele vergelijking tussen individuele scores en teamgemiddelden
 - **Privacy-First**: Alle data blijft lokaal op uw computer
 - **Gebruiksvriendelijk**: Eenvoudige web interface voor niet-technische gebruikers
+- **Responsive Design**: Werkt op desktop, tablet en mobiele apparaten
 
 ### Ondersteunde Competentiegebieden
 
@@ -32,6 +33,7 @@ De applicatie is specifiek ontworpen voor privacy-gevoelige data en draait daaro
 
 - Python 3.8 of hoger
 - pip (Python package manager)
+- Moderne webbrowser (Chrome, Firefox, Safari, Edge)
 
 ### Stap-voor-stap Setup
 
@@ -46,7 +48,7 @@ De applicatie is specifiek ontworpen voor privacy-gevoelige data en draait daaro
    python -m venv venv
    
    # Windows
-   venv\Scripts\activate
+   venv\\Scripts\\activate
    
    # macOS/Linux
    source venv/bin/activate
@@ -68,39 +70,71 @@ De applicatie is specifiek ontworpen voor privacy-gevoelige data en draait daaro
 
 ## Gebruik
 
-### Excel Bestand Uploaden
+### Excel Bestand Voorbereiden
 
-1. **Bestand Voorbereiden**
-   - Zorg ervoor dat uw Excel bestand de juiste structuur heeft
-   - Kolommen moeten de competentievragen bevatten
-   - Rijen bevatten de antwoorden per respondent
+Uw Excel bestand moet de volgende structuur hebben:
 
-2. **Upload Proces**
+**Vereiste Kolommen:**
+- `Timestamp` - Tijdstempel van de feedback
+- `Wie ben jij?` - Naam van de beoordelaar
+- `Voor welke collega vul je dit formulier in?` - Naam van de beoordeelde persoon
+
+**Competentie Kolommen:**
+Kolommen met competentievragen, bijvoorbeeld:
+- `🔹 **PROBLEEMANALYSE** [Begrijpt de kern van problemen]`
+- `🔹 **KWALITEITSZORG** [Levert hoge kwaliteit werk]`
+
+**Ondersteunde Antwoorden:**
+- "Zeer vaak" (score: 5)
+- "Vaak" (score: 4)
+- "Soms" (score: 3)
+- "Zelden" (score: 2)
+- "Nooit" (score: 1)
+- "Weet ik niet" (wordt genegeerd in berekeningen)
+
+### Upload Proces
+
+1. **Bestand Uploaden**
+   - Sleep uw Excel bestand naar het upload gebied, of
    - Klik op "Choose File" en selecteer uw Excel bestand
-   - Klik op "Upload" om het bestand te verwerken
-   - Wacht tot de verwerking is voltooid
+   - Ondersteunde formaten: .xlsx, .xls (max 16MB)
 
-3. **Resultaten Bekijken**
-   - Selecteer een persoon uit de dropdown lijst
-   - De radar chart wordt automatisch gegenereerd
-   - Vergelijk individuele scores (blauw) met teamgemiddelden (rood)
+2. **Automatische Verwerking**
+   - De applicatie verwerkt automatisch uw data
+   - Tekstuele antwoorden worden omgezet naar numerieke scores
+   - Competenties worden gegroepeerd en gemiddelden berekend
+
+3. **Persoon Selecteren**
+   - Na succesvolle upload verschijnt een dropdown met alle personen
+   - Selecteer de persoon waarvan u de feedback wilt bekijken
+   - Klik op "Analyseer Feedback"
+
+4. **Resultaten Bekijken**
+   - De interactieve radar chart wordt automatisch gegenereerd
+   - Vergelijk individuele scores (blauw) met teamgemiddelden (groen)
 
 ### Interpretatie van Resultaten
 
 - **Blauwe lijn**: Individuele scores van de geselecteerde persoon
-- **Rode lijn**: Gemiddelde scores van het hele team
-- **Schaal**: 1-4 (1 = laagste score, 4 = hoogste score)
+- **Groene lijn**: Gemiddelde scores van het hele team
+- **Schaal**: 1-5 (1 = laagste score, 5 = hoogste score)
 - **Gebieden boven teamgemiddelde**: Sterktes van de persoon
 - **Gebieden onder teamgemiddelde**: Mogelijke ontwikkelpunten
+
+### Interactieve Functies
+
+- **Hover over punten**: Toon exacte scores in tooltip
+- **Klik op legenda**: Toon/verberg individuele datasets
+- **Hover over areas**: Highlight specifieke competentiegebieden
 
 ## Technische Details
 
 ### Gebruikte Technologieën
 
 - **Backend**: Python 3.8+, Flask 3.0.0
-- **Data Processing**: pandas 2.1.4, openpyxl 3.1.2
+- **Data Processing**: pandas 2.1.4, openpyxl 3.1.2, numpy 1.24.3
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Visualisatie**: D3.js voor radar chart rendering
+- **Visualisatie**: D3.js v7 voor radar chart rendering
 - **Security**: Werkzeug 3.0.1 voor veilige file uploads
 
 ### Architectuur
@@ -111,14 +145,16 @@ RadarChart/
 ├── data_processor.py      # Excel verwerking en data analyse
 ├── requirements.txt       # Python dependencies
 ├── README.md             # Deze documentatie
+├── project_info.txt      # Project informatie en status
+├── project_stappen.txt   # Ontwikkelstappen en roadmap
 ├── templates/            # HTML templates
 │   └── index.html        # Hoofdpagina interface
 ├── static/               # Statische bestanden
 │   ├── css/
 │   │   └── style.css     # Applicatie styling
 │   └── js/
-│       ├── script.js     # Frontend logica
-│       └── radarChart.js # D3.js radar chart
+│       ├── main.js       # Frontend logica
+│       └── radarChart.js # D3.js radar chart component
 └── uploads/              # Tijdelijke upload directory
 ```
 
@@ -126,18 +162,65 @@ RadarChart/
 
 De applicatie verwerkt Excel bestanden door:
 
-1. **Tekstuele antwoorden** te mappen naar numerieke scores:
-   - "Helemaal mee eens" → 4
-   - "Mee eens" → 3
-   - "Mee oneens" → 2
-   - "Helemaal mee oneens" → 1
+1. **Automatische Structuur Detectie**
+   - Identificeert competentie kolommen aan de hand van ** markers
+   - Detecteert basis kolommen (persoon, beoordelaar, timestamp)
+
+2. **Tekstuele Score Mapping**
+   - "Zeer vaak" → 5
+   - "Vaak" → 4
+   - "Soms" → 3
+   - "Zelden" → 2
+   - "Nooit" → 1
    - "Weet ik niet" → Genegeerd in berekeningen
 
-2. **Competentie mapping** van individuele vragen naar 8 hoofdgebieden
+3. **Competentie Categorisatie**
+   - Automatische groepering van sub-competenties
+   - KLANTGERICHTHEID sub-competenties worden gecombineerd
+   - Mapping van individuele vragen naar 8 hoofdgebieden
 
-3. **Gemiddelde berekening** per competentiegebied per persoon
+4. **Score Berekening**
+   - Gemiddelde berekening per competentiegebied per persoon
+   - Team gemiddelden voor vergelijkingsdoeleinden
+   - Statistische gegevens (standaarddeviatie, aantal responses)
 
-4. **Team gemiddelden** berekening voor vergelijkingsdoeleinden
+### API Endpoints
+
+- `GET /` - Hoofdpagina
+- `POST /upload` - Upload en verwerk Excel bestand
+- `GET /get_scores/<person_name>` - Haal scores op voor specifieke persoon
+- `GET /get_person_details/<person_name>` - Gedetailleerde persoon informatie
+- `POST /validate` - Valideer Excel bestand zonder verwerking
+- `GET /status` - Applicatie status en statistieken
+
+## Troubleshooting
+
+### Veelvoorkomende Problemen
+
+**Upload Fout: "Geen competentie kolommen gevonden"**
+- Controleer of uw Excel kolommen ** markers bevatten
+- Zorg ervoor dat competentievragen duidelijk gemarkeerd zijn
+
+**Fout: "Persoon niet gevonden"**
+- Controleer of de kolom "Voor welke collega vul je dit formulier in?" correct is ingevuld
+- Zorg voor consistente naamgeving (geen extra spaties)
+
+**Radar Chart laadt niet**
+- Controleer uw internetverbinding (D3.js wordt van CDN geladen)
+- Probeer de pagina te verversen
+- Controleer browser console voor JavaScript fouten
+
+**Bestand te groot**
+- Maximum bestandsgrootte is 16MB
+- Probeer uw Excel bestand te optimaliseren of op te splitsen
+
+### Browser Compatibiliteit
+
+- **Chrome**: Volledig ondersteund
+- **Firefox**: Volledig ondersteund  
+- **Safari**: Volledig ondersteund
+- **Edge**: Volledig ondersteund
+- **Internet Explorer**: Niet ondersteund
 
 ## Bijdragen
 
@@ -163,6 +246,7 @@ Rapporteer bugs via GitHub Issues met:
 - Stappen om het probleem te reproduceren
 - Verwacht vs. werkelijk gedrag
 - Screenshots indien relevant
+- Browser en versie informatie
 
 ## Licentie
 
@@ -175,4 +259,5 @@ Voor vragen of ondersteuning, maak een issue aan in de GitHub repository of neem
 ---
 
 **Versie**: 1.0.0  
-**Laatste update**: December 2024
+**Laatste update**: December 2024  
+**Status**: Volledig functioneel - alle must-have features geïmplementeerd

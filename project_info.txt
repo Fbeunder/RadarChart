@@ -32,9 +32,11 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Error handling voor verschillende scenario's
    - Integratie met data_processor module
    - Tijdelijke bestand opslag voor Excel verwerking
+   - File size validatie (16MB max)
+   - Comprehensive error responses
 
 2. **data_processor.py** - Dataverwerking module ✅ VOLTOOID v2.0
-   - Excel/CSV inlezen met pandas/openpyxl (.xlsx, .xls en .csv ondersteuning)
+   - Excel/CSV inlezen met pandas/openpyxl (.xlsx, .xls ondersteuning)
    - Ondersteuning voor wide format data (competenties als kolommen)
    - Automatische conversie van wide naar long format
    - Tekstuele score mapping (Zeer vaak=5, Vaak=4, Soms=3, Zelden=2, Nooit=1)
@@ -44,6 +46,7 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Flexibele kolom mapping voor verschillende Excel structuren
    - Team gemiddelden berekening
    - Uitgebreide error handling en validatie
+   - Competency categorization met regex patterns
 
 #### Frontend (HTML/CSS/JavaScript)
 1. **templates/index.html** - Hoofdpagina ✅ VOLTOOID v3.0
@@ -54,6 +57,7 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Responsive design voor verschillende schermgroottes
    - Nederlandse teksten voor HR-professionals
    - D3.js v7 CDN integratie voor radar chart visualisatie
+   - Progress indicators en status feedback
 
 2. **static/css/style.css** - Styling ✅ VOLTOOID
    - Moderne, professionele interface styling
@@ -71,9 +75,10 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Upload progress en status feedback
    - Personen dropdown populatie
    - Radar chart integratie met D3.js component
-   - Responsive chart rendering
+   - Responsive chart rendering met window resize handling
    - Error handling en gebruikersfeedback
    - Fallback naar basis score weergave bij chart fouten
+   - File size formatting utilities
 
 4. **static/js/radarChart.js** - D3.js visualisatie ✅ VOLTOOID
    - Interactieve radar chart implementatie gebaseerd op D3.js v7
@@ -86,6 +91,8 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
    - Smooth animaties en hover effecten
    - Data transformatie functies voor backend integratie
    - Cleanup functionaliteit voor chart instances
+   - Area highlighting bij mouse hover
+   - Text wrapping voor lange competentie namen
 
 ### Radar Chart Functionaliteiten
 - **Visualisatie**: Multi-dimensionale competentie data in één overzicht
@@ -94,21 +101,19 @@ Een lokaal draaiende webapplicatie voor het analyseren en visualiseren van 360-g
   - Hover tooltips met exacte scores
   - Klikbare legenda om datasets te tonen/verbergen
   - Area highlight bij hover
+  - Glow effects voor visuele appeal
 - **Responsive**: Past zich automatisch aan aan schermgrootte
 - **Toegankelijkheid**: Duidelijke kleuren en labels
 - **Performance**: Efficiënte rendering en cleanup
 
 ### Ondersteunde Data Formaten
-Het systeem ondersteunt nu twee Excel/CSV structuren:
+Het systeem ondersteunt Excel/CSV structuren in wide format:
 
-1. **Wide Format (Nieuw)**: Competenties als kolommen
-   - Kolommen: Timestamp, Wie ben jij?, Voor welke collega..?, [Competentie kolommen]
-   - Scores: Tekstueel (Zeer vaak, Vaak, Soms, Zelden, Nooit, Weet ik niet)
-   - Automatische categorie detectie uit kolomnamen
-
-2. **Long Format (Origineel)**: Competenties als rijen
-   - Kolommen: Persoon, Beoordelaar, Competentie, Score, Type
-   - Scores: Numeriek (1-5)
+**Wide Format**: Competenties als kolommen
+- Kolommen: Timestamp, Wie ben jij?, Voor welke collega..?, [Competentie kolommen]
+- Scores: Tekstueel (Zeer vaak, Vaak, Soms, Zelden, Nooit, Weet ik niet)
+- Automatische categorie detectie uit kolomnamen met ** markers
+- Flexibele parsing voor verschillende Excel layouts
 
 ### Competentiegebieden (Automatisch Gedetecteerd)
 Competenties worden automatisch gedetecteerd uit de Excel kolomnamen. Typische categorieën:
@@ -133,3 +138,18 @@ Competenties worden automatisch gedetecteerd uit de Excel kolomnamen. Typische c
 - static/css/style.css: ✅ Voltooid (Moderne interface styling)
 - static/js/main.js: ✅ Voltooid v2.0 (Radar chart integratie, responsive handling)
 - static/js/radarChart.js: ✅ VOLTOOID (D3.js v7 interactieve radar chart visualisatie)
+
+### Huidige Applicatie Status
+**Volledig Functioneel** - Alle must-have features zijn geïmplementeerd:
+- ✅ Excel upload en verwerking
+- ✅ Data processing en validatie  
+- ✅ Interactieve radar chart visualisatie
+- ✅ Personen selectie en analyse
+- ✅ Team vergelijking functionaliteit
+- ✅ Responsive design
+- ✅ Error handling en gebruikersfeedback
+
+**Volgende Stappen** (nice-to-have):
+- Testing & optimalisatie
+- Uitgebreide documentatie met screenshots
+- Extra features (export, multi-persoon vergelijking)
